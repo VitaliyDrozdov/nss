@@ -1,0 +1,192 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "Quotes API",
+        "description": "API для обработки котировок"
+    },
+    "paths": {
+        "/api/quote": {
+            "post": {
+                "summary": "Создает котировку",
+                "tags": [
+                    "Quotes"
+                ],
+                "requestBody": {
+                    "description": "Данные котировки",
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/QuoteRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/QuoteResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка валидации данных"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "QuoteRequest": {
+                "type": "object",
+                "properties": {
+                    "quote": {
+                        "$ref": "#/components/schemas/Quote"
+                    }
+                }
+            },
+            "Quote": {
+                "type": "object",
+                "properties": {
+                    "header": {
+                        "$ref": "#/components/schemas/Header"
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    },
+                    "subjects": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Subject"
+                        }
+                    }
+                }
+            },
+            "Header": {
+                "type": "object",
+                "properties": {
+                    "runId": {
+                        "type": "string"
+                    },
+                    "quoteId": {
+                        "type": "string"
+                    },
+                    "dateTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "Product": {
+                "type": "object",
+                "properties": {
+                    "productType": {
+                        "type": "string"
+                    },
+                    "productCode": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Subject": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "secondName": {
+                        "type": "string"
+                    },
+                    "middleName": {
+                        "type": "string"
+                    },
+                    "birthDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "gender": {
+                        "type": "string"
+                    },
+                    "addresses": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Address"
+                        }
+                    },
+                    "documents": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Document"
+                        }
+                    }
+                }
+            },
+            "Address": {
+                "type": "object",
+                "properties": {
+                    "country": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "street": {
+                        "type": "string"
+                    },
+                    "houseNumber": {
+                        "type": "string"
+                    },
+                    "apartmentNumber": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Document": {
+                "type": "object",
+                "properties": {
+                    "documentType": {
+                        "type": "string"
+                    },
+                    "documentNumber": {
+                        "type": "string"
+                    },
+                    "issueDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                }
+            },
+            "QuoteResponse": {
+                "type": "object",
+                "properties": {
+                    "header": {
+                        "$ref": "#/components/schemas/Header"
+                    },
+                    "predict": {
+                        "type": "object",
+                        "properties": {
+                            "percent": {
+                                "type": "string",
+                                "example": "38.62%"
+                            },
+                            "score": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 0.3862294713942135
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

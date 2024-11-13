@@ -1,0 +1,24 @@
+
+*.log
+*.idea
+*.old
+
+.csv
+
+
+.env
+
+
+data/
+.mypy_cache/
+__pycache__/
+.vscode/
+.venv/
+venv2/
+.venv2/
+
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json

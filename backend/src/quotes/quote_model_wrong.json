@@ -1,0 +1,38 @@
+{
+    "quote": {
+        "header": {
+            "runId": "123e4567-e89b-12d3-a456-426655440000",
+            "quoteId": "456",
+            "dateTime": "2024-04-12T13:52:26.509Z"
+        },
+        "product": {
+            "productType": "o",
+            "productCode": ""
+        },
+        "subjects": [
+            {
+                "firstName": "Алексей",
+                "middleName": "Владимирович",
+                "birthDate": "",
+                "gender": "male",
+                "addresses": [
+                    {
+                        "country": "string",
+                        "region": "string",
+                        "city": "string",
+                        "street": "string",
+                        "houseNumber": "string",
+                        "apartmentNumber": "string"
+                    }
+                ],
+                "documents": [
+                    {
+                        "documentType": "passportуу",
+                        "documentNumber": "string",
+                        "issueDate": "string"
+                    }
+                ]
+            }
+        ]
+    }
+}

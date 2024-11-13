@@ -1,0 +1,39 @@
+{
+    "quote": {
+        "header": {
+            "runId": "123e4567-e89b-12d3-a456-426655440000",
+            "quoteId": "456",
+            "dateTime": "2024-04-12T13:52:26.509Z"
+        },
+        "product": {
+            "productType": "osago",
+            "productCode": "prod001"
+        },
+        "subjects": [
+            {
+                "firstName": "Алексей",
+                "secondName": "С",
+                "middleName": "Владимирович",
+                "birthDate": "1990-09-02",
+                "gender": "male",
+                "addresses": [
+                    {
+                        "country": "Россия",
+                        "region": "Москва",
+                        "city": "Москва",
+                        "street": "Тверская",
+                        "houseNumber": "1",
+                        "apartmentNumber": "101"
+                    }
+                ],
+                "documents": [
+                    {
+                        "documentType": "passport",
+                        "documentNumber": "1234567890",
+                        "issueDate": "2010-01-01"
+                    }
+                ]
+            }
+        ]
+    }
+}
