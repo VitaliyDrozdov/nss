@@ -76,15 +76,6 @@ def send_vector_to_proxy(data, product_code):
     return prediction_response
 
 
-# @bp.route("/process_mdm_data", methods=["POST"])
-# def process_data():
-#     data = request.get_json()
-#     run_id = data.get("runId")
-#     # заглушка
-#     response_data = {"runId": run_id, "subjectIds": ["01937646", "02948576"]}
-#     return jsonify(response_data)
-
-
 @bp.route("/quote", methods=["POST"])
 def handle_quote():
     """
@@ -97,7 +88,7 @@ def handle_quote():
     """
     input_data = request.get_json()
     if input_data is None:
-        return jsonify({"error": "Отсутствует JSON в запросе"}), 400
+        return jsonify({"error": "No data in request"}), 400
     try:
         validated_data = validate_input_data(input_data)
     except ValidationError as e:

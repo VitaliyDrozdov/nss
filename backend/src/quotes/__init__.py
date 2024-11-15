@@ -7,7 +7,6 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     CORS(app)
     SWAGGER_URL = "/api/docs"
-    # TODO: актуализировать схему в сваггере
     API_URL = "/static/swagger.json"
     swaggerui_blueprint = get_swaggerui_blueprint(
         base_url=SWAGGER_URL,
