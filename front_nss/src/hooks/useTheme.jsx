@@ -144,6 +144,10 @@ export const themeSettings = (mode) => {
             background: {
               default: colors.primary[500],
             },
+            removing: {
+              main: colors.redAccent[500],
+
+            }
           }
         : {
             primary: {
@@ -162,6 +166,9 @@ export const themeSettings = (mode) => {
             },
             background: {
               default: "#fcfcfc",
+            },
+            removing: {
+              main: colors.redAccent[500],
             },
           }),
     },
