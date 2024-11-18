@@ -28,15 +28,16 @@ function App() {
             {showTopbarOn.includes(location.pathname) && <Topbar />}
             <Routes>
               {/* unprotected routes */}
-              <Route path="/" element={<Test />} /> {/* IN PROGRESS */}
-              <Route path="/test" element={<Test />} /> {/* IN PROGRESS */}
 
-              <Route path="/profile" element={<Profile />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
 
               {/* protected routes */}
               <Route element={<ProtectedRoutes />}>
+              <Route path="/" element={<SignIn />} /> {/* IN PROGRESS */}
+              <Route path="/test" element={<Test />} /> {/* IN PROGRESS */}
+
+              <Route path="/profile" element={<Profile />} />
                
               </Route>
             </Routes>

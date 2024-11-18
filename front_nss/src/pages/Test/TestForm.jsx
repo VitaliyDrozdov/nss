@@ -58,6 +58,8 @@ const initialValues = {
   },
 };
 
+
+
 const MuiTextField = ({ field, form, ...props }) => {
   return <TextField {...field} {...props} />;
 };
@@ -67,21 +69,23 @@ const MuiTextField = ({ field, form, ...props }) => {
 const Page = () => {
   const [IsOpen, setOpen] = React.useState(false);
   const [data, setData] = React.useState({
-    "predict":
-    {
-      "percent": "null",
+    "predict": {
+      "percent": "undefined",
       "score": 0
-    },
-    "routedTo": "osago",
-    "runId": "id"
-  }
-  );
+    }
+});
+  const[IsOpenError, setOpenError] = React.useState(false);
+  const [error_message, setErrorMessage] = React.useState("");
   const handleOpen = (data) => {
     setData(data)
     setOpen(true)
 
   };
   const handleClose = () => setOpen(false);
+  const handleCloseError = () => setOpenError(false);
+  const handleOpenError = (error) => {
+    setErrorMessage(error)
+    setOpenError(true)};
 
 
 
@@ -96,18 +100,23 @@ const Page = () => {
 
     fetch(address, params)
       .then(response => {
+          if (response.status === 400) {
+              throw new Error("Необходимо заполнить все поля формы для получения предсказания");
+          }
+          else if (response.status === 500) {
+            throw new Error("Сервер недоступен");
+          }
         console.log("start parsing data")
         return response.json()
       })
       .then(data => {
-        handleOpen(data);
+        handleOpen(data)
+        return data;
       })
       .catch(error => {
-        console.log(error)
+        handleOpenError(error.message)
       });
   };
-
-
 
   return (
     <>
@@ -115,9 +124,7 @@ const Page = () => {
         open={IsOpen}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-
-      >
+        aria-describedby="modal-modal-description">
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Предсказание
@@ -131,6 +138,16 @@ const Page = () => {
           <Button onClick={handleClose} color="secondary">Close</Button>
         </Box>
       </Modal>
+
+      <Modal
+        open={IsOpenError}
+        onClose={handleCloseError}>
+        <Box sx={style}>
+          <p>{error_message}</p>
+        <Button onClick={handleCloseError} color="secondary">Close</Button>
+        </Box>
+      </Modal>
+
 
 
 
