@@ -1,22 +1,38 @@
 version: '3.9'
 
 services:
+  users_db:
+    image: postgres
+    restart: always
+    environment: POSTGRES_USER=admin POSTGRES_PASSWORD=admin_pass POSTGRES_DB=nss_db
+    volumes:
+      - users_data: /var/lib/postgresql/data
+
   backend:
     build: ./backend/
     env_file: ./backend/.env
     ports:
       - "5000:5000"
+    depends_on:
+      - users_db
     networks:
       - nss_network
+
   react-app:
     build: ./front_nss
     ports:
       - "8080:3000"
     environment:
       - NODE_ENV=production
+    depends_on:
+      - users_db
+      - backend
     networks:
       - nss_network
 
 networks:
   nss_network:
     driver: bridge
+
+volumes:
+  users_db:
