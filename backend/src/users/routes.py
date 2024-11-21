@@ -1,11 +1,16 @@
+import os
+import sqlite3
 import uuid
 
 import redis
+from dotenv import load_dotenv
 from flask import Blueprint, jsonify, request
 from users.auth import User, db
 
 bp = Blueprint("users_routes", __name__)
 redis_store = redis.Redis(host="localhost", port=6379, decode_responses=True)
+
+load_dotenv()
 
 
 @bp.route("/register", methods=["POST"])
@@ -27,19 +32,32 @@ def register():
 
 @bp.route("/login", methods=["POST"])
 def login():
+    DB_PAth = os.getenv("DB_PATH")
     data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+    # username = data.get("username")
+    # password = data.get("password")
+    conn = sqlite3.connect(DB_PAth)
+    data = (
+        conn.cursor()
+        .execute("SELECT * FROM user where username = %s;")
+        .fetchone()
+    )
+    conn.close()
+    if not data:
+        return jsonify({"error": "Invalid credentials"}), 401
+    token = str(uuid.uuid4())
+    redis_store.set(token, data["role"], ex=3600)
+    return jsonify({"access_token": token})
     # user = User.query.filter_by(username=username).first()
-    if username == "user" and password == "pass":
-        token = str(uuid.uuid4())
-        redis_store.set(token, "user", ex=3600)
-        return jsonify({"access_token": token})
+    # if username == "user" and password == "pass":
+    # token = str(uuid.uuid4())
+    # redis_store.set(token, "user", ex=3600)
+    # return jsonify({"access_token": token})
     # TODO: логика с ролями
-    elif username == "admin" and password == "pass":
-        token = str(uuid.uuid4())
-        redis_store.set(token, "admin", ex=3600)
-        return jsonify({"access_token": token})
+    # elif username == "admin" and password == "pass":
+    # token = str(uuid.uuid4())
+    # redis_store.set(token, "admin", ex=3600)
+    # return jsonify({"access_token": token})
     return jsonify({"error": "Invalid credentials"}), 401
 
 
