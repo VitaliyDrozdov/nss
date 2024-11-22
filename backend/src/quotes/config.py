@@ -9,4 +9,5 @@ class Config:
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
     SWAGGER_URL = "/api/docs"
     API_URL = "/static/swagger.json"
+    SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
     # MDM_URL = os.getenv("MDM_URL", "http://mdm-service/api/subjects")

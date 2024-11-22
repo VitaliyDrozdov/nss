@@ -2,6 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from quotes.config import Config
+from quotes.routes.auth import bp as bp_auth
+from quotes.routes.quotes import bp as bp_quotes
 
 
 def create_app():
@@ -13,11 +15,11 @@ def create_app():
         api_url=app.config["API_URL"],
         config={"app_name": "Quotes API"},
     )
-    from .routes import bp
 
     app.register_blueprint(
         swaggerui_blueprint, url_prefix=app.config["SWAGGER_URL"]
     )
 
-    app.register_blueprint(bp, url_prefix="/api")
+    app.register_blueprint(bp_quotes, url_prefix="/api")
+    app.register_blueprint(bp_auth, url_prefix="/api/auth")
     return app

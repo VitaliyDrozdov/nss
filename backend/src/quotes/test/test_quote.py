@@ -2,7 +2,8 @@ import json
 import os
 
 from pydantic import ValidationError
-from quotes.models import QuoteData
+
+from backend.src.quotes.models import QuoteData
 
 JSON_FOLDER = "./"
 

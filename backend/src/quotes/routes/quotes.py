@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 from quotes.utils import validate_input_data
 
-bp = Blueprint("routes", __name__)
+bp = Blueprint("quotes", __name__)
 
 
 logging.basicConfig(level=logging.INFO)
