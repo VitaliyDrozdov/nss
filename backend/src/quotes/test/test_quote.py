@@ -4,7 +4,7 @@ import os
 from pydantic import ValidationError
 from quotes.models import QuoteData
 
-JSON_FOLDER = "./quotes"
+JSON_FOLDER = "./"
 
 
 def test_quote_validation(file_path):

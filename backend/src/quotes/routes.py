@@ -2,28 +2,13 @@ import logging
 
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
-from quotes.models import QuoteData
+from quotes.utils import validate_input_data
 
 bp = Blueprint("routes", __name__)
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def validate_input_data(data):
-    """
-    Валидирует данные по QuoteData модели Pydantic.
-
-    Args:
-        data (dict): Входящий json.
-
-    Returns:
-        QuoteData: завалидированный json как экземпляр QuoteData.
-        tuple: в случае ошибки JSON response и HTTP status code.
-    """
-    validated_data = QuoteData(**data)
-    return validated_data
 
 
 def send_to_mdm(data):
@@ -103,7 +88,6 @@ def handle_quote():
         logger.info(f"Internal error: {str(e)}")
         return jsonify({"error": f"internal server error {str(e)}"}), 500
 
-    # TODO: добавить валидацию
     mdm_response = send_to_mdm(validated_data)  # отправка запроса на mdm
     product_code = validated_data.quote.product.productCode
     features_response = get_features(mdm_response, product_code)
