@@ -1,8 +1,9 @@
 from functools import wraps
 
 from flask import jsonify, request
-from quotes.models.auth import User
+from quotes.models.auth import Role, User, db
 from quotes.models.quotes import QuoteData
+from werkzeug.security import generate_password_hash
 
 
 def validate_input_data(data):
@@ -36,15 +37,21 @@ def token_required(f):
     return decorated_f
 
 
-# @bp.before_request
-# def token_required():
-#     excluded_routes = ["login", "register"]
-#     if request.endpoint not in excluded_routes:
-#         token = request.headers.get("Authorization")
-#         if not token:
-#             return jsonify({"error": "Token is missing"}), 403
-#         token = token.split(" ")[1] if " " else token
-#         user = User.query.filter_by(token=token).first()
-#         if not user or not user.check_token(token):
-#             return jsonify({"error": "Invalid or expired token"}), 403
-#         request.user = user
+def create_admin():
+    admin_role = Role.query.filter_by(name="admin").first()
+    if not admin_role:
+        admin_role = Role(name="admin")
+        db.session().add(admin_role)
+        db.session.commit()
+        return "Admin user already exists"
+
+    admin_password = "admin"
+    admin_user = User.query.filter_by(username="admin").first()
+    if not admin_user:
+        hashed_password = generate_password_hash(admin_password)
+        admin_user = User(username="admin", password=hashed_password)
+        admin_user.roles.append(admin_role)
+        admin_user.generate_token()
+        db.session.add(admin_user)
+        db.session.commit()
+        return "Admin user created with default values"

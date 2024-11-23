@@ -6,18 +6,39 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
+roles_users = db.Table(
+    "roles_users",
+    db.Column(
+        "user_id", db.Integer, db.ForeignKey("user.id"), primary_key=True
+    ),
+    db.Column(
+        "role_id", db.Integer, db.ForeignKey("role.id"), primary_key=True
+    ),
+)
+
+
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    users = db.relationship(
+        "User",
+        secondary=roles_users,
+        backref=db.backref("user_roles", lazy="dynamic"),
+    )
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-
     token = db.Column(db.String(100), unique=True, nullable=False)
     token_expiry = db.Column(db.DateTime, nullable=False)
+    roles = db.relationship("Role", secondary=roles_users)
 
     def generate_token(self, expiration=3600):
         token = str(uuid.uuid4())
         self.token = token
-        self.token_expiry = datetime.now() - timedelta(days=1)
+        self.token_expiry = datetime.now() + timedelta(seconds=expiration)
         return token
 
     def check_token(self, token):

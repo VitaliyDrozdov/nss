@@ -1,7 +1,7 @@
 import datetime
 
 from flask import Blueprint, jsonify, request
-from quotes.models.auth import User, db
+from quotes.models.auth import Role, User, db
 from quotes.utils import token_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -30,6 +30,12 @@ def register():
         return jsonify({"error": "Username already exists"}), 400
     hashed_password = generate_password_hash(password)
     new_user = User(username=username, password=hashed_password)
+    user_role = Role.query.filter_by(name="userrole").first()
+    if not user_role:
+        user_role = Role(name="userrole")
+        db.session.add(user_role)
+        db.session.commit()
+    new_user.roles.append(user_role)
     new_user.generate_token()
     db.session.add(new_user)
     db.session.commit()
@@ -52,9 +58,7 @@ def login():
 @token_required
 def logout(user):
     user.token = ""
-    user.token_expiry = datetime.datetime.now() - datetime.timedelta(
-        seconds=-2
-    )
+    user.token_expiry = datetime.datetime.now() - datetime.timedelta(days=2)
     db.session.commit()
     return jsonify({"message": "Logged out successfully."}), 200
 
@@ -63,3 +67,9 @@ def logout(user):
 @token_required
 def check_protected(user):
     return {"message": f"protected endpoint\n User: {user.username}"}
+
+
+@bp.route("/profile", methods=["GET"])
+@token_required
+def profile(user):
+    return jsonify({"username": user.username, "token": user.token})
