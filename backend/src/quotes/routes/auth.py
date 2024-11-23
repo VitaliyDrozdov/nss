@@ -21,7 +21,6 @@ def register():
                     "request_fields": {
                         "username": f"{username}",
                         "password": f"{password}",
-                        "email": "",
                     },
                 }
             ),
@@ -60,20 +59,7 @@ def logout(user):
     return jsonify({"message": "Logged out successfully."}), 200
 
 
-@bp.route("/protected", methods=["POST"])
+@bp.route("/protected", methods=["GET"])
 @token_required
-def check_protected():
-
-    token = request.headers.get("Authorization")
-
-    if not token:
-        return jsonify({"error": "Token is missing"}), 403
-
-    token = token.split(" ")[1]
-
-    user = User.query.filter_by(token=token).first()
-
-    if user and user.check_token(token):
-        return jsonify({"message": "Access granted"}), 200
-    else:
-        return jsonify({"error": "Invalid or expired token"}), 403
+def check_protected(user):
+    return {"message": f"protected endpoint\n User: {user.username}"}

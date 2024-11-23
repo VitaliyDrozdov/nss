@@ -13,12 +13,11 @@ class User(db.Model):
 
     token = db.Column(db.String(100), unique=True, nullable=False)
     token_expiry = db.Column(db.DateTime, nullable=False)
-    # role = db.Column(db.String(50), default="user")
 
     def generate_token(self, expiration=3600):
         token = str(uuid.uuid4())
         self.token = token
-        self.token_expiry = datetime.now() + timedelta(seconds=expiration)
+        self.token_expiry = datetime.now() - timedelta(days=1)
         return token
 
     def check_token(self, token):

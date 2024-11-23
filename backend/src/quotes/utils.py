@@ -27,7 +27,7 @@ def token_required(f):
         if not token:
             return jsonify({"error": "Token is missing"}), 403
 
-        token = token.split(" ")[1] if " " else token
+        token = token.split(" ")[1]
         user = User.query.filter_by(token=token).first()
         if not user or not user.check_token(token):
             return jsonify({"error": "Invalid or expired token"}), 403
