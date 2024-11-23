@@ -22,4 +22,5 @@ def create_app():
 
     app.register_blueprint(bp_quotes, url_prefix="/api")
     app.register_blueprint(bp_auth, url_prefix="/api/auth")
+
     return app

@@ -8,6 +8,8 @@
 
 .env
 
+.db
+
 
 data/
 .mypy_cache/
