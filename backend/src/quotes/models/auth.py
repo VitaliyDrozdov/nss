@@ -34,6 +34,11 @@ class User(db.Model):
     token = db.Column(db.String(100), unique=True, nullable=False)
     token_expiry = db.Column(db.DateTime, nullable=False)
     roles = db.relationship("Role", secondary=roles_users)
+    email = db.Column(db.String(50), unique=True, nullable=True)
+    first_name = db.Column(db.String(50), nullable=True)
+    second_name = db.Column(db.String(50), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.now())
+    last_login = db.Column(db.DateTime)
 
     def generate_token(self, expiration=3600):
         token = str(uuid.uuid4())

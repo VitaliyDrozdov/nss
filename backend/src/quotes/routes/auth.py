@@ -12,7 +12,6 @@ bp = Blueprint("auth", __name__)
 def register():
     username = request.json.get("username")
     password = request.json.get("password")
-    # email = request.json.get("email")
     if not username or not password:
         return (
             jsonify(
@@ -69,7 +68,38 @@ def check_protected(user):
     return {"message": f"protected endpoint\n User: {user.username}"}
 
 
-@bp.route("/profile", methods=["GET"])
+@bp.route("/profile", methods=["GET", "PATCH"])
 @token_required
 def profile(user):
-    return jsonify({"username": user.username, "token": user.token})
+    if request.method == "GET":
+        return jsonify(
+            {
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "second_name": user.second_name,
+                "created_at": (
+                    user.created_at.isoformat() if user.created_at else None
+                ),
+                "last_login": (
+                    user.last_login.isoformat() if user.last_login else None
+                ),
+                "roles": [role.name for role in user.roles],
+            }
+        )
+    elif request.method == "PATCH":
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data"}), 400
+        for k, v in data.items():
+            if hasattr(user, k):
+                if k == "password":
+                    v = generate_password_hash(v)
+                setattr(user, k, v)
+        if "username" in data:
+            username = data["username"]
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user and existing_user.id != user.id:
+                return jsonify({"error": "Username already exists"}), 400
+        db.session.commit()
+        return jsonify({"message": "Profile updated"}), 200

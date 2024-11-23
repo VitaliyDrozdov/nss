@@ -26,12 +26,14 @@ def token_required(f):
     def decorated_f(*args, **kwargs):
         token = request.headers.get("Authorization")
         if not token:
-            return jsonify({"error": "Token is missing"}), 403
-
-        token = token.split(" ")[1]
+            return jsonify({"error": "Token is missing"}), 401
+        if token.startswith("Bearer"):
+            token = token.split(" ")[1]
+        else:
+            return jsonify({"error": "Reqires 'Bearer' in request "}), 400
         user = User.query.filter_by(token=token).first()
         if not user or not user.check_token(token):
-            return jsonify({"error": "Invalid or expired token"}), 403
+            return jsonify({"error": "Invalid or expired token"}), 401
         return f(user, *args, **kwargs)
 
     return decorated_f
