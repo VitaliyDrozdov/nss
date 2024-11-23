@@ -8,6 +8,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 bp = Blueprint("auth", __name__)
 
 
+def is_admin(user):
+    return any(role.name == "admin" for role in user.roles)
+
+
 @bp.route("/register", methods=["POST"])
 def register():
     username = request.json.get("username")
@@ -91,15 +95,45 @@ def profile(user):
         data = request.json
         if not data:
             return jsonify({"error": "No data"}), 400
+        for field in ["created_at", "last_login"]:
+            data.pop(field, None)
+
+        if "roles" in data and not is_admin(user):
+            return (
+                jsonify(
+                    {"error": "You do not have permission to change roles"}
+                ),
+                403,
+            )
+
+        if "new_username" in data:
+            new_username = data["new_username"]
+            username = data["username"]
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                if existing_user.id != user.id:
+                    if not is_admin(user):
+                        return (
+                            jsonify({"error": "Can not change other profile"}),
+                            403,
+                        )
+                    check_new_username = User.query.filter_by(
+                        username=new_username
+                    ).first()
+                    if check_new_username:
+                        return (
+                            jsonify({"error": "Username already exists"}),
+                            400,
+                        )
+                    else:
+                        user = existing_user
+                        user.username = new_username
+
         for k, v in data.items():
             if hasattr(user, k):
                 if k == "password":
                     v = generate_password_hash(v)
                 setattr(user, k, v)
-        if "username" in data:
-            username = data["username"]
-            existing_user = User.query.filter_by(username=username).first()
-            if existing_user and existing_user.id != user.id:
-                return jsonify({"error": "Username already exists"}), 400
+
         db.session.commit()
         return jsonify({"message": "Profile updated"}), 200
