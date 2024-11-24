@@ -1,8 +1,8 @@
 import datetime
 
 from flask import Blueprint, jsonify, request
-from quotes.models.auth import Role, User, db, roles_users
-from quotes.utils import is_admin, token_required
+from quotes.models.auth import Role, User, db
+from quotes.utils import UserProfileManager, is_admin, token_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
 bp = Blueprint("auth", __name__)
@@ -71,166 +71,54 @@ def check_protected(user):
 @bp.route("/profile", methods=["GET", "PATCH", "DELETE"])
 @token_required
 def profile(user):
+    user_manager = UserProfileManager(user, db.session)
     if request.method == "GET":
-        return jsonify(
-            {
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "second_name": user.second_name,
-                "created_at": (
-                    user.created_at.isoformat() if user.created_at else None
-                ),
-                "last_login": (
-                    user.last_login.isoformat() if user.last_login else None
-                ),
-                "roles": [role.name for role in user.roles],
-            }
-        )
+        return user_manager.get()
     elif request.method == "PATCH":
-        fields = {"password", "email", "first_name", "second_name"}
-        data = request.json
-        if not data:
-            return jsonify({"error": "No data"}), 400
-
-        # existing_user = User.query.filter_by(username=user.username).first()
-        # if existing_user.id != user.id:
-        #     return (
-        #         jsonify({"error": "Can not change other profile"}),
-        #         403,
-        #     )
-        for k, v in data.items():
-            if k in fields and hasattr(user, k):
-                if k == "password":
-                    v = generate_password_hash(v)
-                setattr(user, k, v)
-
-        db.session.commit()
-        return jsonify({"message": "Profile updated"}), 200
+        return user_manager.update(request.json)
     elif request.method == "DELETE":
-        try:
-            # user.roles.clear()
-            # for role in user.roles[:]:
-            #     user.roles.remove(role)
-            db.session.execute(
-                roles_users.delete().where(roles_users.c.user_id == user.id)
-            )
-            db.session.delete(user)
-            db.session.commit()
-            return jsonify({"message": "user deleted"}), 204
-        except Exception as e:
-            db.session.rollback()
-            return (
-                jsonify(
-                    {"error": "Failed to delete profile", "details": str(e)}
-                ),
-                500,
-            )
+        return user_manager.delete()
 
 
 @bp.route("/admin/<int:other_user_id>", methods=["GET", "PATCH", "DELETE"])
 @token_required
 def admin_profile(cur_user, other_user_id):
-
     if not is_admin(cur_user):
         return jsonify({"error": "You do not have permission"}), 403
+
     existing_user = User.query.get_or_404(other_user_id)
+    user_manager = UserProfileManager(existing_user, db.session)
+
     if request.method == "GET":
-        return jsonify(
-            {
-                "username": existing_user.username,
-                "email": existing_user.email,
-                "first_name": existing_user.first_name,
-                "second_name": existing_user.second_name,
-                "created_at": (
-                    existing_user.created_at.isoformat()
-                    if existing_user.created_at
-                    else None
-                ),
-                "last_login": (
-                    existing_user.last_login.isoformat()
-                    if existing_user.last_login
-                    else None
-                ),
-                "roles": [role.name for role in existing_user.roles],
-            }
-        )
+        return user_manager.get()
 
     elif request.method == "PATCH":
-        if is_admin(existing_user):
+        if user_manager.is_admin():
             return (
                 jsonify({"error": "Can not change other admin's profile"}),
                 403,
             )
-
         data = request.json
-        fields = {
-            "password",
-            "email",
-            "first_name",
-            "second_name",
-        }
-        if not data:
-            return jsonify({"error": "No data"}), 400
-
         new_username = data.get("new_username")
         if User.query.filter_by(username=new_username).first():
             return jsonify({"error": "Username already exists"}), 400
         if new_username:
             existing_user.username = new_username
-        roles = data.get("roles")
 
+        roles = data.get("roles")
         if roles:
             existing_user.roles = [
                 Role.query.filter_by(name=role).first() for role in roles
             ]
-
-        # Протестить
-        # new_password = data.get("password")
-        # if new_password:
-        #     existing_user.password = generate_password_hash(new_password)
-
-        for k, v in data.items():
-            if k in fields and hasattr(existing_user, k):
-                if k == "password":
-                    v = generate_password_hash(v)
-                setattr(existing_user, k, v)
-
-        db.session.commit()
+        user_manager.update(data)
         return jsonify({"message": f"Profile {other_user_id} updated"}), 200
 
     elif request.method == "DELETE":
-        if is_admin(existing_user):
+        if user_manager.is_admin():
             return (
                 jsonify({"error": "Can not delete other admin's profile"}),
                 403,
             )
 
-        try:
-            # TODO    Тут почему то не работает, надо поправить
-            db.session.execute(
-                roles_users.delete().where(
-                    roles_users.c.user_id == other_user_id
-                )
-            )
-            db.session.delete(existing_user)
-            db.session.commit()
-            return (
-                jsonify(
-                    {
-                        "message": (
-                            f"User id{other_user_id}, "
-                            f"username {existing_user.username} deleted"
-                        )
-                    }
-                ),
-                204,
-            )
-        except Exception as e:
-            db.session.rollback()
-            return (
-                jsonify(
-                    {"error": "Failed to delete profile", "details": str(e)}
-                ),
-                500,
-            )
+        # TODO    Тут почему то не работает, надо поправить
+        return user_manager.delete()
