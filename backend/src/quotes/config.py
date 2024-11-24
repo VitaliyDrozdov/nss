@@ -14,4 +14,3 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv(
         "SQLALCHEMY_TRACK_MODIFICATIONS", "False"
     )
-    # MDM_URL = os.getenv("MDM_URL", "http://mdm-service/api/subjects")

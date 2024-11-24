@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
+from quotes.core.mdm import send_to_mdm
 from quotes.utils import validate_input_data
 
 bp = Blueprint("quotes", __name__)
@@ -9,22 +10,6 @@ bp = Blueprint("quotes", __name__)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def send_to_mdm(data):
-    """
-    Отправка данных на MDM микросервис.
-
-    Args:
-        data (QuoteData): Validated data.
-
-    Returns:
-        dict: словарь из run ID и subject IDs.
-        tuple: в случае ошибки JSON response и HTTP status code.
-    """
-    run_id = data.quote.header.runId
-    response_data = {"runId": run_id, "subjectIds": ["01937646", "02948576"]}
-    return response_data
 
 
 def get_features(data, product_code):

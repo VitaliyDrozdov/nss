@@ -2,14 +2,10 @@ import datetime
 
 from flask import Blueprint, jsonify, request
 from quotes.models.auth import Role, User, db
-from quotes.utils import token_required
+from quotes.utils import is_admin, token_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
 bp = Blueprint("auth", __name__)
-
-
-def is_admin(user):
-    return any(role.name == "admin" for role in user.roles)
 
 
 @bp.route("/register", methods=["POST"])
@@ -137,3 +133,53 @@ def profile(user):
 
         db.session.commit()
         return jsonify({"message": "Profile updated"}), 200
+
+
+@bp.route("/admin/<int:other_user_id>", methods=["GET", "PATCH", "DELETE"])
+@token_required
+def admin_profile(cur_user, other_user_id):
+
+    if not is_admin(cur_user):
+        return jsonify({"error": "You do not have permission"}), 403
+    if request.method == "GET":
+        return {"message": f"other_user_id: {other_user_id}"}
+    elif request.method == "PATCH":
+        fields = {
+            "password",
+            "email",
+            "first_name",
+            "second_name",
+        }
+        existing_user = User.query.get_or_404(other_user_id)
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data"}), 400
+
+        new_username = data.get("new_username")
+        if User.query.filter_by(username=new_username).first():
+            return jsonify({"error": "Username already exists"})
+        if new_username:
+            existing_user.username = new_username
+        roles = data.get("roles")
+
+        if roles:
+            existing_user.roles = [
+                Role.query.filter_by(name=role).first() for role in roles
+            ]
+
+        # Протестить
+        # new_password = data.get("password")
+        # if new_password:
+        #     existing_user.password = generate_password_hash(new_password)
+
+        for k, v in data.items():
+            if k in fields and hasattr(existing_user, k):
+                if k == "password":
+                    v = generate_password_hash(v)
+                setattr(existing_user, k, v)
+
+        db.session.commit()
+        return jsonify({"message": f"Profile {other_user_id} updated"}), 200
+
+    elif request.method == "DELETE":
+        pass

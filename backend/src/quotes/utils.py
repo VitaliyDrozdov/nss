@@ -57,3 +57,7 @@ def create_admin():
         db.session.add(admin_user)
         db.session.commit()
         return "Admin user created with default values"
+
+
+def is_admin(user):
+    return any(role.name == "admin" for role in user.roles)
