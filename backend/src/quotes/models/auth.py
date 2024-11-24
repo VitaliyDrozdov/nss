@@ -9,10 +9,10 @@ db = SQLAlchemy()
 roles_users = db.Table(
     "roles_users",
     db.Column(
-        "user_id", db.Integer, db.ForeignKey("user.id"), primary_key=True
+        "user_id", db.Integer, db.ForeignKey("user.id", ondelete="CASCADE")
     ),
     db.Column(
-        "role_id", db.Integer, db.ForeignKey("role.id"), primary_key=True
+        "role_id", db.Integer, db.ForeignKey("role.id", ondelete="CASCADE")
     ),
 )
 
