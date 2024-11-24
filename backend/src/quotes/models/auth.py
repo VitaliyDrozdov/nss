@@ -30,7 +30,7 @@ class Role(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    password = db.Column(db.String(512), nullable=False)
     token = db.Column(db.String(100), unique=True, nullable=False)
     token_expiry = db.Column(db.DateTime, nullable=False)
     roles = db.relationship("Role", secondary=roles_users)
