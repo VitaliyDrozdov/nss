@@ -15,12 +15,12 @@ class Config:
     DB_HOST = os.getenv("DB_HOST")
     DB_PORT = os.getenv("DB_PORT")
     DB_NAME = os.getenv("DB_NAME")
-    # SQLALCHEMY_DATABASE_URI = (
-    #     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    # )
     SQLALCHEMY_DATABASE_URI = (
-        "postgresql://nss_users_user:nss_users_password@users_db:5432/nss_db"
+        f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
+    # SQLALCHEMY_DATABASE_URI = (
+    #     "postgresql://nss_users_user:nss_users_password@users_db:5432/nss_db"
+    # )
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv(
         "SQLALCHEMY_TRACK_MODIFICATIONS", "False"
     )

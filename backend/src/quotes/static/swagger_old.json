@@ -125,10 +125,36 @@
                         }
                     },
                     "401": {
-                        "description": "Неавторизованный доступ"
+                        "description": "Неавторизованный доступ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid or expired token."
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "400": {
-                        "description": "Неверный request"
+                        "description": "Неверный request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Reqires 'Bearer' in request "
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -221,10 +247,7 @@
                                             "example": "2024-11-24T20:22:50.872068"
                                         },
                                         "roles": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            },
+                                            "type": "string",
                                             "example": [
                                                 "admin",
                                                 "userrole"
@@ -241,154 +264,218 @@
                 }
             },
             "patch": {
-                "summary": "Обновление информации о текущем пользователе",
+                "summary": "Обновление информации о текущей пользовате",
                 "tags": [
                     "Authentication"
-                ],
-                "requestBody": {
-                    "description": "Поля для обновления",
+                ]
+            },
+            "parameters": [
+                {
+                    "name": "Authorization",
+                    "in": "header",
                     "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "Данные получены",
                     "content": {
                         "application/json": {
                             "schema": {
-                                "first_name": "first_name"
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Данные обновлены",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "username": {
-                                            "type": "string",
-                                            "example": "username1"
-                                        },
-                                        "email": {
-                                            "type": "string",
-                                            "example": "example@email.org"
-                                        },
-                                        "first_name": {
-                                            "type": "string",
-                                            "example": "first_name"
-                                        },
-                                        "second_name": {
-                                            "type": "string",
-                                            "example": "second_name"
-                                        },
-                                        "created_at": {
-                                            "type": "string",
-                                            "example": "2024-11-24T20:22:50.872068"
-                                        },
-                                        "last_login": {
-                                            "type": "string",
-                                            "example": "2024-11-24T20:22:50.872068"
-                                        },
-                                        "roles": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
-                                            },
-                                            "example": [
-                                                "admin",
-                                                "userrole"
-                                            ]
-                                        }
+                                "type": "object",
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "username1"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "example@email.org"
+                                    },
+                                    "first_name": {
+                                        "type": "string",
+                                        "example": "first_name"
+                                    },
+                                    "second_name": {
+                                        "type": "string",
+                                        "example": "second_name"
+                                    },
+                                    "created_at": {
+                                        "type": "string",
+                                        "example": "2024-11-24T20:22:50.872068"
+                                    },
+                                    "last_login": {
+                                        "type": "string",
+                                        "example": "2024-11-24T20:22:50.872068"
+                                    },
+                                    "roles": {
+                                        "type": "string",
+                                        "example": [
+                                            "admin",
+                                            "userrole"
+                                        ]
                                     }
                                 }
                             }
                         }
-                    },
-                    "403": {
-                        "description": "Токен отсутствует или недействителен"
+                    }
+                },
+                "403": {
+                    "description": "Токен отсутствует или недействителен"
+                }
+            }
+        }
+    }
+},
+"components": {
+    "schemas": {
+        "QuoteRequest": {
+            "type": "object",
+            "properties": {
+                "quote": {
+                    "$ref": "#/components/schemas/Quote"
+                }
+            }
+        },
+        "Quote": {
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/components/schemas/Header"
+                },
+                "product": {
+                    "$ref": "#/components/schemas/Product"
+                },
+                "subjects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Subject"
                     }
                 }
             }
         },
-        "/api/quote/subjects": {
-            "post": {
-                "summary": "Отправка данных субъектов для получения фичей",
-                "tags": [
-                    "Quote"
-                ],
-                "requestBody": {
-                    "description": "Данные субъектов для скоринга",
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QuoteRequest"
-                            }
-                        }
+        "Header": {
+            "type": "object",
+            "properties": {
+                "runId": {
+                    "type": "string"
+                },
+                "quoteId": {
+                    "type": "string"
+                },
+                "dateTime": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        },
+        "Product": {
+            "type": "object",
+            "properties": {
+                "productType": {
+                    "type": "string"
+                },
+                "productCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "Subject": {
+            "type": "object",
+            "properties": {
+                "firstName": {
+                    "type": "string"
+                },
+                "secondName": {
+                    "type": "string"
+                },
+                "middleName": {
+                    "type": "string"
+                },
+                "birthDate": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "addresses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Address"
                     }
                 },
-                "responses": {
-                    "200": {
-                        "description": "Успешный ответ",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/QuoteResponse"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка валидации данных"
+                "documents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Document"
                     }
                 }
             }
-        }
-    },
-    "components": {
-        "schemas": {
-            "QuoteRequest": {
-                "type": "object",
-                "properties": {
-                    "quote": {
-                        "$ref": "#/components/schemas/Quote"
-                    }
+        },
+        "Address": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string"
+                },
+                "region": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "houseNumber": {
+                    "type": "string"
+                },
+                "apartmentNumber": {
+                    "type": "string"
                 }
-            },
-            "Quote": {
-                "type": "object",
-                "properties": {
-                    "header": {
-                        "$ref": "#/components/schemas/Header"
-                    },
-                    "product": {
-                        "$ref": "#/components/schemas/Product"
-                    },
-                    "subjects": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/Subject"
+            }
+        },
+        "Document": {
+            "type": "object",
+            "properties": {
+                "documentType": {
+                    "type": "string"
+                },
+                "documentNumber": {
+                    "type": "string"
+                },
+                "issueDate": {
+                    "type": "string",
+                    "format": "date"
+                }
+            }
+        },
+        "QuoteResponse": {
+            "type": "object",
+            "properties": {
+                "header": {
+                    "$ref": "#/components/schemas/Header"
+                },
+                "predict": {
+                    "type": "object",
+                    "properties": {
+                        "percent": {
+                            "type": "string",
+                            "example": "38.62%"
+                        },
+                        "score": {
+                            "type": "number",
+                            "format": "float",
+                            "example": 0.3862294713942135
                         }
-                    }
-                }
-            },
-            "QuoteResponse": {
-                "type": "object",
-                "properties": {
-                    "result": {
-                        "$ref": "#/components/schemas/Result"
                     }
                 }
             }
         }
     }
+}
 }

@@ -9,6 +9,9 @@
 .env
 
 .db
+swagger_example.yml
+swagger_old.json
+swagger.json
 
 
 data/

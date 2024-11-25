@@ -22,6 +22,8 @@ def validate_input_data(data):
 
 
 def token_required(f):
+    """Декоратор для доступа только залогиненного пользователя."""
+
     @wraps(f)
     def decorated_f(*args, **kwargs):
         token = request.headers.get("Authorization")
@@ -40,6 +42,8 @@ def token_required(f):
 
 
 def create_admin():
+    """Скрипт создания админа после запуска приложения."""
+
     admin_role = Role.query.filter_by(name="admin").first()
     if not admin_role:
         admin_role = Role(name="admin")
@@ -60,6 +64,8 @@ def create_admin():
 
 
 class UserProfileManager:
+    """Менеджер для энпоинтов пользователей."""
+
     def __init__(self, user, db_session) -> None:
         self.user = user
         self.db_session = db_session

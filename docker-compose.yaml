@@ -13,15 +13,18 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: nss_users_user
-      POSTGRES_PASSWORD: nss_users_password
+      POSTGRES_PASSWORD: nss_users_passwordcc
       POSTGRES_DB: nss_db
+      # POSTGRES_USER: ${DB_USER}
+      # POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # POSTGRES_DB: ${DB_NAME}
     volumes:
       - users_data:/var/lib/postgresql/data
-    # healthcheck:
-    #   test: [ "CMD-SHELL", "pg_isready -h $DB_HOST -U $POSTGRES_USER -d $POSTGRES_DB" ]
-    #   interval: 5s
-    #   timeout: 5s
-    #   retries: 5
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
     networks:
       - nss_network
 
@@ -31,9 +34,9 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - users_db
-      # users_db:
-      #   condition: service_healthy
+      # - users_db
+      users_db:
+        condition: service_healthy
     networks:
       - nss_network
 

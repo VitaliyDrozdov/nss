@@ -10,6 +10,7 @@ bp = Blueprint("auth", __name__)
 
 @bp.route("/register", methods=["POST"])
 def register():
+    """Регистрация новых пользователей."""
     username = request.json.get("username")
     password = request.json.get("password")
     if not username or not password:
@@ -43,6 +44,11 @@ def register():
 
 @bp.route("/login", methods=["POST"])
 def login():
+    """Вход по username и password
+
+    Returns:
+        string: token
+    """
     username = request.json.get("username")
     password = request.json.get("password")
     user = User.query.filter_by(username=username).first()
@@ -56,6 +62,7 @@ def login():
 @bp.route("/logout", methods=["POST"])
 @token_required
 def logout(user):
+    """Выход из текущего профиля. Токен обнуляется."""
     user.token = ""
     user.token_expiry = datetime.datetime.now() - datetime.timedelta(days=2)
     db.session.commit()
@@ -65,12 +72,14 @@ def logout(user):
 @bp.route("/protected", methods=["GET"])
 @token_required
 def check_protected(user):
+    """Тестовый закрытый эндпоинт."""
     return {"message": f"protected endpoint\n User: {user.username}"}
 
 
 @bp.route("/profile", methods=["GET", "PATCH", "DELETE"])
 @token_required
 def profile(user):
+    """Получение информации, обновление и удаление текущего пользователя."""
     user_manager = UserProfileManager(user, db.session)
     if request.method == "GET":
         return user_manager.get()
@@ -83,6 +92,7 @@ def profile(user):
 @bp.route("/admin/<int:other_user_id>", methods=["GET", "PATCH", "DELETE"])
 @token_required
 def admin_profile(cur_user, other_user_id):
+    """Эндпоинты для админов."""
     if not is_admin(cur_user):
         return jsonify({"error": "You do not have permission"}), 403
 
