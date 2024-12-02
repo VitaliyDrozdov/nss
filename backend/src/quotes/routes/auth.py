@@ -18,10 +18,7 @@ def register():
             jsonify(
                 {
                     "error": "Missing required fields",
-                    "request_fields": {
-                        "username": f"{username}",
-                        "password": f"{password}",
-                    },
+                    "request_fields": ["username", "password"],
                 }
             ),
             400,
