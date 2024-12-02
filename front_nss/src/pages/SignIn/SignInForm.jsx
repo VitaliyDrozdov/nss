@@ -18,10 +18,30 @@ const SignInForm = () => {
   const navigate = useNavigate();
 
   const handleFormSubmit = (values) => {
-    console.log(values);
+    const address = 'http://localhost:5000/api/auth/login';
+    const params = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(values)
+    }
 
-    login();
-    navigate("/test");
+    fetch(address, params)
+      .then(response => {
+          if (response.status === 200) {
+              login();
+              navigate("/test");
+          }
+          else if (response.status === 500) {
+            throw new Error("Сервер недоступен");
+          }
+        console.log("start parsing data")
+        return response.json()
+      })
+      .catch(error => {
+        console.log(error.message)
+      });
   };
 
   return (
@@ -49,13 +69,13 @@ const SignInForm = () => {
               fullWidth
               variant="filled"
               type="text"
-              label="Email"
+              label="username"
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.email}
-              name="email"
-              error={!!touched.email && !!errors.email}
-              helperText={touched.email && errors.email}
+              value={values.username}
+              name="username"
+              error={!!touched.username && !!errors.username}
+              helperText={touched.username && errors.username}
             />
             <TextField
               fullWidth
@@ -94,12 +114,12 @@ const SignInForm = () => {
 };
 
 const checkoutSchema = yup.object().shape({
-  email:      yup.string().email("invalid email").required("обязательное!"),
+  username:      yup.string().required("обязательное!"),
   password:   yup.string().required("обязательное!"),
 });
 
 const initialValues = {
-  email: "",
+  username: "",
   password: "",
 };
 

@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Box, Button, IconButton, TextField, useTheme } from "@mui/material";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
@@ -13,9 +13,32 @@ import { ColorModeContext } from "../../hooks/useTheme";
 const SignUpForm = () => {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
+  const navigate = useNavigate();
   const handleFormSubmit = (values) => {
-    console.log(values);
-  };
+      const address = 'http://localhost:5000/api/auth/register';
+      const params = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(values)
+      }
+  
+      fetch(address, params)
+        .then(response => {
+            if (response.status === 201) {
+                navigate("/signin");
+            }
+            else if (response.status === 500) {
+              throw new Error("Сервер недоступен");
+            }
+          console.log("start parsing data")
+          return response.json()
+        })
+        .catch(error => {
+          console.log(error.message)
+        });
+    };
 
   return (
     <Formik
@@ -44,7 +67,7 @@ const SignUpForm = () => {
               label="Имя"
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.firstName}
+              //value={values.firstName}
               name="firstName"
               error={!!touched.firstName && !!errors.firstName}
               helperText={touched.firstName && errors.firstName}
@@ -57,7 +80,7 @@ const SignUpForm = () => {
               label="Фамилия"
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.lastName}
+              //value={values.lastName}*
               name="lastName"
               error={!!touched.lastName && !!errors.lastName}
               helperText={touched.lastName && errors.lastName}
@@ -67,13 +90,13 @@ const SignUpForm = () => {
               fullWidth
               variant="filled"
               type="text"
-              label="Email"
+              label="Username"
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.email}
-              name="email"
-              error={!!touched.email && !!errors.email}
-              helperText={touched.email && errors.email}
+              value={values.username}
+              name="username"
+              error={!!touched.username && !!errors.username}
+              helperText={touched.username && errors.username}
               sx={{ gridColumn: "span 4" }}
             />
             <TextField
@@ -83,7 +106,7 @@ const SignUpForm = () => {
               label="Номер телефона"
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.contact}
+              //value={values.contact}
               name="contact"
               error={!!touched.contact && !!errors.contact}
               helperText={touched.contact && errors.contact}
@@ -93,15 +116,16 @@ const SignUpForm = () => {
               fullWidth
               variant="filled"
               type="text"
-              label="Должность"
+              label="Пароль"
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.address2}
-              name="position"
-              error={!!touched.position && !!errors.position}
-              helperText={touched.position && errors.position}
+              value={values.password}
+              name="password"
+              error={!!touched.password && !!errors.password}
+              helperText={touched.password && errors.password}
               sx={{ gridColumn: "span 4" }}
             />
+            
           </Box>
           <Box display="flex" justifyContent="space-between" mt={2}>
             <IconButton onClick={colorMode.toggleColorMode}>
@@ -130,22 +154,17 @@ const phoneRegExp =
   /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
 
 const checkoutSchema = yup.object().shape({
-  firstName:  yup.string().required("обязательное!"),
-  lastName:   yup.string().required("обязательное!"),
-  email:      yup.string().email("invalid email").required("обязательное!"),
+  firstName:  yup.string(),
+  lastName:   yup.string(),
+  username:      yup.string().required("обязательное!"),
   contact: yup
     .string()
-    .matches(phoneRegExp, "Phone number is not valid")
-    .required("обязательное!"),
-  position:   yup.string().required("обязательное!"),
+    .matches(phoneRegExp, "Phone number is not valid"),
 });
 
 const initialValues = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  contact: "",
-  position: "",
+  username: "",
+  password: "",
 };
 
 export default SignUpForm;
