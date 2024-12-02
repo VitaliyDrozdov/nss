@@ -13,7 +13,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: nss_users_user
-      POSTGRES_PASSWORD: nss_users_passwordcc
+      POSTGRES_PASSWORD: nss_users_password
       POSTGRES_DB: nss_db
       # POSTGRES_USER: ${DB_USER}
       # POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -34,7 +34,6 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      # - users_db
       users_db:
         condition: service_healthy
     networks:
