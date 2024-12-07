@@ -1,10 +1,7 @@
 import uuid
 from datetime import datetime, timedelta
 
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
-
+from quotes.config import db
 
 roles_users = db.Table(
     "roles_users",

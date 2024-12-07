@@ -1,14 +1,18 @@
+import logging
 import os
 
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
+
+db = SQLAlchemy()
 
 
 class Config:
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
     SWAGGER_URL = os.getenv("SWAGGER_URL", "/api/docs")
-    API_URL = os.getenv("API_URL", "/static/swagger.json")
+    API_URL = os.getenv("API_URL", "/static/swagger.yml")
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
     DB_USER = os.getenv("DB_USER")
     DB_PASSWORD = os.getenv("DB_PASSWORD")
@@ -24,3 +28,12 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv(
         "SQLALCHEMY_TRACK_MODIFICATIONS", "False"
     )
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    handlers=[logging.StreamHandler()],
+)
+
+logger = logging.getLogger(__name__)

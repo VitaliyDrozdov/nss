@@ -1,9 +1,3 @@
-CREATE SCHEMA IF NOT EXISTS mdm;
-
-CREATE SCHEMA IF NOT EXISTS ml;
-
-CREATE SCHEMA IF NOT EXISTS fs;
-
 CREATE TABLE
     IF NOT EXISTS mdm.subjects (
         id serial,
