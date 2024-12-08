@@ -22,12 +22,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = (
         f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
-    # SQLALCHEMY_DATABASE_URI = (
-    #     "postgresql://nss_users_user:nss_users_password@users_db:5432/nss_db"
-    # )
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv(
         "SQLALCHEMY_TRACK_MODIFICATIONS", "False"
     )
+    SQL_SCRIPTS_DIR = os.getenv("SQL_SCRIPTS_DIR")
 
 
 logging.basicConfig(
@@ -37,3 +35,4 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
