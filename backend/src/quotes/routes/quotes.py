@@ -2,10 +2,8 @@ import logging
 
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
-from quotes.config import db
 from quotes.core.mdm import send_to_mdm
 from quotes.utils import validate_input_data
-from sqlalchemy import text
 
 bp = Blueprint("quotes", __name__)
 
@@ -83,22 +81,3 @@ def handle_quote():
         product_code,
     )
     return jsonify(prediction), 200
-
-
-@bp.route("/db_data", methods=["GET"])
-def get_data():
-    with db.engine.connect() as connection:
-        result = connection.execute(
-            text(
-                """
-                SELECT table_schema, table_name
-                FROM information_schema.tables
-                WHERE table_schema NOT IN ('information_schema', 'pg_catalog')
-                ORDER BY table_schema, table_name;
-                """
-            )
-        )
-        tables = [
-            {"schema": row[0], "table": row[1]} for row in result.fetchall()
-        ]
-    return jsonify({"tables": tables})

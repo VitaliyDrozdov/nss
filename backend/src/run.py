@@ -45,25 +45,26 @@ if __name__ == "__main__":
                 connection.execute(text(TEST_SQL_COMMAND_2))
                 connection.execute(text(CREATE_SCHEMAS_COMMANDS))
                 connection.execute(text(CREATE_TABLES_COMMANDS))
-            test_query_2 = connection.execute(
-                text(
-                    """SELECT schema_name
-                    FROM information_schema.schemata;
-                    """
-                )
-            )
-            logger.info(f"Database schemas: {test_query_2.fetchall()}")
-            test_query = connection.execute(
-                text(
-                    """
-                    SELECT table_schema, table_name
-                    FROM information_schema.tables
-                WHERE table_schema NOT IN ('information_schema', 'pg_catalog')
-                    AND table_type = 'BASE TABLE'
-                    ORDER BY table_schema, table_name;
+                test_query_2 = connection.execute(
+                    text(
+                        """SELECT schema_name
+                        FROM information_schema.schemata;
                         """
+                    )
                 )
-            )
+                logger.info(f"Database schemas: {test_query_2.fetchall()}")
+                test_query = connection.execute(
+                    text(
+                        """
+                        SELECT table_schema, table_name
+                        FROM information_schema.tables
+                WHERE table_schema NOT IN ('information_schema', 'pg_catalog')
+                        AND table_type = 'BASE TABLE'
+                        ORDER BY table_schema, table_name;
+                            """
+                    )
+                )
+                db.create_all()
             logger.info(f"Database tables: {test_query.fetchall()}")
     except Exception as e:
         print(f"An error occurred: {e}")
