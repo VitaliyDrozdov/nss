@@ -1,6 +1,13 @@
+import datetime
+import os
+
+from dotenv import load_dotenv
 from flask import jsonify
-from quotes.models.auth import Role, User, db, roles_users
 from werkzeug.security import generate_password_hash
+
+from quotes.models.auth import Role, User, db
+
+load_dotenv()
 
 
 def create_admin():
@@ -13,11 +20,13 @@ def create_admin():
         db.session.commit()
         return "Admin user already exists"
 
-    admin_password = "admin"
-    admin_user = User.query.filter_by(email="admin@email.ru").first()
+    admin_password = os.getenv("ADMIN_PASSWORD")
+    admin_user = User.query.filter_by(email=os.getenv("ADMIN_EMAIL")).first()
     if not admin_user:
         hashed_password = generate_password_hash(admin_password)
-        admin_user = User(email="admin@mail.ru", password=hashed_password)
+        admin_user = User(
+            email=os.getenv("ADMIN_EMAIL"), password=hashed_password
+        )
         admin_user.roles.append(admin_role)
         admin_user.generate_token()
         db.session.add(admin_user)
@@ -25,74 +34,55 @@ def create_admin():
         return "Admin user created with default values"
 
 
-class UserProfileManager:
-    """Менеджер для энпоинтов пользователей."""
-
-    def __init__(self, user, db_session) -> None:
+class BaseProfileManager:
+    def __init__(self, user, db_session):
         self.user = user
         self.db_session = db_session
 
-    def get(self):
-        return jsonify(
-            {
-                "username": self.user.username,
-                "email": self.user.email,
-                "first_name": self.user.first_name,
-                "second_name": self.user.second_name,
-                "created_at": (
-                    self.user.created_at.isoformat()
-                    if self.user.created_at
-                    else None
-                ),
-                "last_login": (
-                    self.user.last_login.isoformat()
-                    if self.user.last_login
-                    else None
-                ),
-                "roles": [role.name for role in self.user.roles],
-            }
-        )
-
-    def update(self, data):
-        fields = {
-            "password",
+    def get_fields(self):
+        return {
+            "username",
             "email",
             "first_name",
             "second_name",
+            "created_at",
+            "last_login",
+            "password",
         }
-        if not data or not any([val in fields for val in data]):
-            return jsonify({"error": "No data"}), 400
+
+    def get(self):
+        accessible_fields = self.get_fields()
+        data = {
+            field: getattr(self.user, field, None)
+            for field in accessible_fields
+        }
+
+        if "last_login" in accessible_fields:
+            data["last_login"] = self.user.last_login.isoformat()
+        if "roles" in accessible_fields:
+            data["roles"] = [role.name for role in self.user.roles]
+
+        return jsonify(data)
+
+    def update(self, data):
+        fields = self.get_fields()
+        if not data or not any(key in fields for key in data):
+            return jsonify({"error": "No valid fields to update"}), 400
 
         for k, v in data.items():
-            if k in fields and hasattr(self.user, k):
+            if k in fields:
                 if k == "password":
                     v = generate_password_hash(v)
+                    self.user.last_password_reset = datetime.datetime.now()
                 setattr(self.user, k, v)
-
         self.db_session.commit()
         return jsonify({"message": "Profile updated"}), 200
 
     def delete(self):
         try:
-
-            self.db_session.execute(
-                roles_users.delete().where(
-                    roles_users.c.user_id == self.user.id
-                )
-            )
-            db.session.delete(self.user)
-            db.session.commit()
-            return (
-                jsonify(
-                    {
-                        "message": (
-                            f"User id{self.user.id}, "
-                            f"self.username {self.user.username} deleted"
-                        )
-                    }
-                ),
-                204,
-            )
+            self.db_session.delete(self.user)
+            self.db_session.commit()
+            return jsonify({"message": f"User {self.user.email} deleted"}), 204
         except Exception as e:
             self.db_session.rollback()
             return (
@@ -102,47 +92,60 @@ class UserProfileManager:
                 500,
             )
 
-    def is_admin(self):
-        return any(role.name == "admin" for role in self.user.roles)
+
+class UserProfileManager(BaseProfileManager):
+    def get_fields(self):
+        return super().get_fields()
+
+
+class AdminProfileManager(BaseProfileManager):
+
+    def __init__(self, user, db_session):
+        super().__init__(user, db_session)
+        # self.current_user = current_user
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields.update(
+            {"login_attempts", "is_blocked", "last_password_reset", "roles"}
+        )
+        return fields
+
+    def update(self, data):
+        if not data:
+            return jsonify({"error": "No valid fields to update"}), 400
+        roles = data.get("roles")
+        if roles:
+            roles_objects = [
+                Role.query.filter_by(name=role).first() for role in roles
+            ]
+            missing_roles = [
+                role for role, obj in zip(roles, roles_objects) if obj is None
+            ]
+            if missing_roles:
+                return (
+                    jsonify(
+                        {
+                            "error": (
+                                "Roles not found: "
+                                f"{', '.join(missing_roles)}"
+                            )
+                        }
+                    ),
+                    400,
+                )
+            data.pop("roles")
+        is_blocked = data.get("is_blocked")
+        if is_blocked is not None:
+            self.user.is_blocked = is_blocked
+            if not is_blocked:
+                self.user.login_attempts = 0
+            data.pop("is_blocked")
+        if not any(key in self.get_fields() for key in data):
+            self.db_session.commit()
+            return jsonify({"message": "Profile updated"}), 200
+        return super().update(data)
 
 
 def is_admin(user):
     return any(role.name == "admin" for role in user.roles)
-
-
-# class BaseCLICommand:
-#     def __init__(self, app):
-#         self.app = app
-
-#     def register(self):
-#         raise NotImplementedError()
-
-
-# class GenerateUsers(BaseCLICommand):
-#     def register(self):
-#         @self.app.cli.command("create_users")
-#         def create_users():
-#             roles = ("admin", "userrole")
-#             data = {
-#                 "admin1": {
-#                     "username": "admin1",
-#                     "email": "admin1@example.com",
-#                     "password": "admin1_password",
-#                     "role": roles[0],
-#                 },
-#                 "user1": {
-#                     "username": "user1",
-#                     "email": "user1@example.com",
-#                     "password": "user1_password",
-#                     "role": roles[1],
-#                 },
-#                 "user2": {
-#                     "username": "admin1",
-#                     "email": "admin1@example.com",
-#                     "password": "admin1_password",
-#                     "role": roles[1],
-#                 },
-#             }
-
-#         with self.app.app_context():
-#             db.create_all()

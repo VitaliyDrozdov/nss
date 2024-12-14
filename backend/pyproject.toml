@@ -19,8 +19,7 @@ flask-migrate = "^4.0.7"
 psycopg2 = "^2.9.10"
 psycopg2-binary = "^2.9.10"
 flask-mail = "^0.10.0"
-
-
+aiosmtpd = "^1.4.6"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -28,6 +27,7 @@ pre-commit = "^4.0.1"
 isort = "^5.13.2"
 flake8 = "^7.1.1"
 black = "^24.10.0"
+
 
 [build-system]
 requires = ["poetry-core"]

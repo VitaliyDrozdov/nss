@@ -23,11 +23,5 @@ def create_app():
     app.register_blueprint(bp_quotes, url_prefix="/api")
     app.register_blueprint(bp_auth, url_prefix="/api/auth")
 
-    app.config["MAIL_SERVER"] = "localhost"
-    app.config["MAIL_PORT"] = 8025
-    app.config["MAIL_USERNAME"] = None
-    app.config["MAIL_PASSWORD"] = None
-    app.config["MAIL_USE_TLS"] = False
-    app.config["MAIL_USE_SSL"] = False
     mail.init_app(app)
     return app

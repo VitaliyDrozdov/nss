@@ -1,13 +1,22 @@
 import datetime
+import os
 
+from dotenv import load_dotenv
 from flask import Blueprint, jsonify, request
 from flask_mail import Message
-from quotes.config import db, mail
-from quotes.models.auth import Role, User
-from quotes.utils import UserProfileManager, is_admin, token_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from quotes.config import db, logger, mail
+from quotes.models.auth import Role, User
+from quotes.utils import (
+    AdminProfileManager,
+    UserProfileManager,
+    is_admin,
+    token_required,
+)
+
 bp = Blueprint("auth", __name__)
+load_dotenv()
 
 
 @bp.route("/register", methods=["POST"])
@@ -31,7 +40,11 @@ def register(cur_user):
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "email already exists"}), 400
     hashed_password = generate_password_hash(password)
-    new_user = User(email=email, password=hashed_password)
+    new_user = User(
+        email=email,
+        password=hashed_password,
+        created_at=datetime.datetime.now(),
+    )
     user_role = Role.query.filter_by(name="userrole").first()
     if not user_role:
         user_role = Role(name="userrole")
@@ -54,10 +67,38 @@ def login():
     email = request.json.get("email")
     password = request.json.get("password")
     user = User.query.filter_by(email=email).first()
-    if user and check_password_hash(user.password, password):
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    if user.is_blocked:
+        return jsonify({"error": "Account is blocked."}), 403
+
+    if check_password_hash(user.password, password):
         user.generate_token()
         db.session.commit()
         return jsonify({"access_token": user.token}), 200
+    user.login_attempts += 1
+    db.session.commit()
+    if user.login_attempts >= 3:
+        user.is_blocked = True
+        db.session.commit()
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@mail.ru")
+        msg = Message(
+            "User Account Blockeds",
+            sender="no-reply@neoscoring.com",
+            recipients=[admin_email],
+        )
+        msg.body = (
+            f"User with email {user.email} "
+            "has been blocked due to multiple failed attempts."
+        )
+        logger.info(msg.as_string())
+        mail.send(msg)
+        return (
+            jsonify(
+                {"error": "Account blocked due to multiple failed attempts"}
+            ),
+            403,
+        )
     return jsonify({"error": "Invalid credentials"}), 401
 
 
@@ -69,14 +110,6 @@ def logout(user):
     user.token_expiry = datetime.datetime.now() - datetime.timedelta(days=2)
     db.session.commit()
     return jsonify({"message": "Logged out successfully."}), 200
-
-
-# TODO удалить
-@bp.route("/protected", methods=["GET"])
-@token_required
-def check_protected(user):
-    """Тестовый закрытый эндпоинт."""
-    return {"message": f"protected endpoint\n User: {user.username}"}
 
 
 @bp.route("/profile", methods=["GET", "PATCH", "DELETE"])
@@ -100,69 +133,80 @@ def admin_profile(cur_user, other_user_id):
         return jsonify({"error": "You do not have permission"}), 403
 
     existing_user = User.query.get_or_404(other_user_id)
-    user_manager = UserProfileManager(existing_user, db.session)
+    admin_manager = AdminProfileManager(existing_user, db.session)
 
     if request.method == "GET":
-        return user_manager.get()
-
+        return admin_manager.get()
     elif request.method == "PATCH":
-        if user_manager.is_admin():
+        if is_admin(existing_user):
             return (
                 jsonify({"error": "Can not change other admin's profile"}),
                 403,
             )
         data = request.json
-        new_username = data.get("new_username")
-        if User.query.filter_by(username=new_username).first():
-            return jsonify({"error": "Username already exists"}), 400
-        if new_username:
-            existing_user.username = new_username
-
-        roles = data.get("roles")
-        if roles:
-            existing_user.roles = [
-                Role.query.filter_by(name=role).first() for role in roles
-            ]
-        user_manager.update(data)
-        return jsonify({"message": f"Profile {other_user_id} updated"}), 200
-
+        return admin_manager.update(data)
     elif request.method == "DELETE":
-        if user_manager.is_admin():
+        if is_admin(existing_user):
             return (
                 jsonify({"error": "Can not delete other admin's profile"}),
                 403,
             )
-
-        # TODO    Тут почему то не работает, надо поправить
-        return user_manager.delete()
+        return admin_manager.delete()
 
 
 @bp.route("/reset_password", methods=["POST"])
-def reset_password():
+@token_required
+def reset_password(user):
     """Запрос на восстановление пароля."""
     email = request.json.get("email")
     user = User.query.filter_by(email=email).first()
 
     if user:
-        user.generate_token()
+        user.generate_reset_uuid()
         user.token_expiry = datetime.datetime.now() + datetime.timedelta(
             hours=1
         )
+        user.token = ""
         db.session.commit()
-
         # Отправка email с ссылкой для сброса пароля
-
+        reset_url = (
+            f"https://neoscoring.com/reset_password/{user.reset_password_uuid}"
+        )
         msg = Message(
             "Password Reset Request",
             sender="no-reply@neoscoring.com",
             recipients=[email],
         )
-        msg.body = (
-            "Для сброса пароля перейдите по ссылке: "
-            f"https://neoscoring.com/reset_password/{user.token}"
+        msg.body = "Для сброса пароля перейдите по ссылке: " f"{reset_url}"
+        logger.info(msg.as_string())
+        try:
+            mail.send(msg)
+        except Exception as e:
+            return (
+                jsonify({"error": "Failed to send email", "details": str(e)}),
+                500,
+            )
+        return (
+            jsonify({"message": "Message sent."}),
+            200,
         )
-        mail.send(msg)
-
-        return jsonify({"message": "Message sent."}), 200
 
     return jsonify({"error": "Email not found"}), 404
+
+
+@bp.route("/reset_password/<uuid>", methods=["POST"])
+def set_new_password(uuid):
+    """Переход по ссылке для создания нового пароля."""
+    user = User.query.filter_by(reset_password_uuid=uuid).first()
+    if user and user.token_expiry > datetime.datetime.now():
+        new_password = request.json.get("password")
+        user.password = generate_password_hash(new_password)
+        user.last_passoword_rest = datetime.datetime.now()
+        user.reset_password_uuid = None
+        user.token = ""
+        user.token_expiry = datetime.datetime.now() - datetime.timedelta(
+            days=2
+        )
+        db.session.commit()
+        return jsonify({"message": "The password has been reset"}), 200
+    return jsonify({"error": "Invalid or expired reset link."}), 400
