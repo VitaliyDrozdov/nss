@@ -1,8 +1,10 @@
+import csv
 import datetime
 import os
+from io import StringIO
 
 from dotenv import load_dotenv
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, Response, jsonify, request
 from flask_mail import Message
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -128,7 +130,7 @@ def profile(user):
 @bp.route("/admin/<int:other_user_id>", methods=["GET", "PATCH", "DELETE"])
 @token_required
 def admin_profile(cur_user, other_user_id):
-    """Эндпоинты для админов."""
+    """Изменение учетный записей пользователей админами."""
     if not is_admin(cur_user):
         return jsonify({"error": "You do not have permission"}), 403
 
@@ -210,3 +212,131 @@ def set_new_password(uuid):
         db.session.commit()
         return jsonify({"message": "The password has been reset"}), 200
     return jsonify({"error": "Invalid or expired reset link."}), 400
+
+
+def apply_filters(query, filters):
+    email = filters.get("email")
+    if email:
+        query = query.filter(User.email.ilike(f"%{email}%"))
+    username = filters.get("username")
+    if username:
+        query = query.filter(User.username == username)
+    role = filters.get("role")
+    if role:
+        query = query.join(User.roles).filter(Role.name == role)
+    is_blocked = filters.get("is_blocked")
+    if is_blocked is not None:
+        query = query.filter(User.is_blocked == (is_blocked.lower() == "true"))
+    return query
+
+
+@bp.route("/admin/users", methods=["GET"])
+@token_required
+def get_all_users(user):
+    if not is_admin(user):
+        return jsonify({"error": "You do not have permission"}), 403
+    email = request.args.get("email")
+    username = request.args.get("username")
+    role = request.args.get("role")
+    is_blocked = request.args.get("is_blocked")
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+
+    query = User.query
+    query = apply_filters(
+        query,
+        {
+            "email": email,
+            "username": username,
+            "role": role,
+            "is_blocked": is_blocked,
+        },
+    )
+
+    paginated_users = query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    users = paginated_users.items
+    user_data = [
+        {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "first_name": user.first_name,
+            "second_name": user.second_name,
+            "created_at": user.created_at.isoformat(),
+            "last_login": user.last_login.isoformat(),
+            "is_blocked": user.is_blocked,
+            "login_attempts": user.login_attempts,
+            "last_password_reset": user.last_password_reset,
+            "roles": [role.name for role in user.roles],
+        }
+        for user in users
+    ]
+    return jsonify(
+        {
+            "users": user_data,
+            "total": paginated_users.total,
+            "pages": paginated_users.pages,
+            "current_page": paginated_users.page,
+            "per_page": paginated_users.per_page,
+        }
+    )
+
+
+@bp.route("/admin/users/export", methods=["GET"])
+@token_required
+def export_users(user):
+    if not is_admin(user):
+        return jsonify({"error": "You do not have permission"}), 403
+    email = request.args.get("email")
+    username = request.args.get("username")
+    role = request.args.get("role")
+    is_blocked = request.args.get("is_blocked")
+    query = User.query
+    query = apply_filters(
+        query,
+        {
+            "email": email,
+            "username": username,
+            "role": role,
+            "is_blocked": is_blocked,
+        },
+    )
+    users = query.all()
+    output = StringIO()
+
+    writer = csv.writer(output)
+    writer.writerow(
+        [
+            "id",
+            "email",
+            "username",
+            "first_Name",
+            "second_Name",
+            "created_At",
+            "last Login",
+            "is_blocked",
+            "roles",
+        ]
+    )
+    for user in users:
+        writer.writerow(
+            [
+                user.id,
+                user.email,
+                user.username,
+                user.first_name,
+                user.second_name,
+                user.created_at.isoformat(),
+                user.last_login.isoformat(),
+                user.is_blocked,
+                ", ".join([role.name for role in user.roles]),
+            ]
+        )
+    output.seek(0)
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=users.csv"},
+    )
