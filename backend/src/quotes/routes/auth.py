@@ -13,6 +13,8 @@ from quotes.models.auth import Role, User
 from quotes.utils import (
     AdminProfileManager,
     UserProfileManager,
+    admin_required,
+    apply_filters,
     is_admin,
     token_required,
 )
@@ -23,10 +25,9 @@ load_dotenv()
 
 @bp.route("/register", methods=["POST"])
 @token_required
+@admin_required
 def register(cur_user):
     """Регистрация новых пользователей."""
-    if not is_admin(cur_user):
-        return jsonify({"error": "You do not have permission"}), 403
     email = request.json.get("email")
     password = request.json.get("password")
     if not email or not password:
@@ -129,11 +130,9 @@ def profile(user):
 
 @bp.route("/admin/<int:other_user_id>", methods=["GET", "PATCH", "DELETE"])
 @token_required
+@admin_required
 def admin_profile(cur_user, other_user_id):
     """Изменение учетный записей пользователей админами."""
-    if not is_admin(cur_user):
-        return jsonify({"error": "You do not have permission"}), 403
-
     existing_user = User.query.get_or_404(other_user_id)
     admin_manager = AdminProfileManager(existing_user, db.session)
 
@@ -214,27 +213,11 @@ def set_new_password(uuid):
     return jsonify({"error": "Invalid or expired reset link."}), 400
 
 
-def apply_filters(query, filters):
-    email = filters.get("email")
-    if email:
-        query = query.filter(User.email.ilike(f"%{email}%"))
-    username = filters.get("username")
-    if username:
-        query = query.filter(User.username == username)
-    role = filters.get("role")
-    if role:
-        query = query.join(User.roles).filter(Role.name == role)
-    is_blocked = filters.get("is_blocked")
-    if is_blocked is not None:
-        query = query.filter(User.is_blocked == (is_blocked.lower() == "true"))
-    return query
-
-
 @bp.route("/admin/users", methods=["GET"])
 @token_required
+@admin_required
 def get_all_users(user):
-    if not is_admin(user):
-        return jsonify({"error": "You do not have permission"}), 403
+    """Список всех пользователей."""
     email = request.args.get("email")
     username = request.args.get("username")
     role = request.args.get("role")
@@ -286,9 +269,9 @@ def get_all_users(user):
 
 @bp.route("/admin/users/export", methods=["GET"])
 @token_required
+@admin_required
 def export_users(user):
-    if not is_admin(user):
-        return jsonify({"error": "You do not have permission"}), 403
+    """Экспорт данных о пользователях в файл."""
     email = request.args.get("email")
     username = request.args.get("username")
     role = request.args.get("role")
@@ -340,3 +323,30 @@ def export_users(user):
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=users.csv"},
     )
+
+
+@bp.route("/admin/roles", methods=["GET", "POST"])
+@token_required
+@admin_required
+def create_role(user):
+    """Создание новой роли или получение списка всез ролей."""
+    if request.method == "POST":
+        role_name = request.json.get("name")
+        if not role_name:
+            return jsonify({"error": "Role name is required"}), 400
+
+        existing_role = Role.query.filter_by(name=role_name).first()
+        if existing_role:
+            return jsonify({"error": "Role already exists"}), 400
+        new_role = Role(name=role_name)
+        db.session.add(new_role)
+        db.session.commit()
+        return (
+            jsonify(
+                {"message": "Role created successfully", "role": new_role.name}
+            ),
+            201,
+        )
+    elif request.method == "GET":
+        roles = Role.query.all()
+        return jsonify({"roles": [role.name for role in roles]})

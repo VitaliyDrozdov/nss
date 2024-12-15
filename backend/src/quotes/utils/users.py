@@ -1,5 +1,6 @@
 import datetime
 import os
+from functools import wraps
 
 from dotenv import load_dotenv
 from flask import jsonify
@@ -35,6 +36,8 @@ def create_admin():
 
 
 class BaseProfileManager:
+    """Базовый класс для управления пользователямию."""
+
     def __init__(self, user, db_session):
         self.user = user
         self.db_session = db_session
@@ -94,15 +97,17 @@ class BaseProfileManager:
 
 
 class UserProfileManager(BaseProfileManager):
+    """Класс для управления обычными пользователями."""
+
     def get_fields(self):
         return super().get_fields()
 
 
 class AdminProfileManager(BaseProfileManager):
+    """Класс для управления админами"""
 
     def __init__(self, user, db_session):
         super().__init__(user, db_session)
-        # self.current_user = current_user
 
     def get_fields(self):
         fields = super().get_fields()
@@ -148,4 +153,34 @@ class AdminProfileManager(BaseProfileManager):
 
 
 def is_admin(user):
+    """Проверка на админскую роль."""
     return any(role.name == "admin" for role in user.roles)
+
+
+def apply_filters(query, filters):
+    """Применение фильтров для эндпоинтов."""
+    email = filters.get("email")
+    if email:
+        query = query.filter(User.email.ilike(f"%{email}%"))
+    username = filters.get("username")
+    if username:
+        query = query.filter(User.username == username)
+    role = filters.get("role")
+    if role:
+        query = query.join(User.roles).filter(Role.name == role)
+    is_blocked = filters.get("is_blocked")
+    if is_blocked is not None:
+        query = query.filter(User.is_blocked == (is_blocked.lower() == "true"))
+    return query
+
+
+def admin_required(f):
+    """Декоратор для админских эндпоинтов."""
+
+    @wraps(f)
+    def decorated_function(user, *args, **kwargs):
+        if not is_admin(user):
+            return jsonify({"error": "You do not have permission"}), 403
+        return f(user, *args, **kwargs)
+
+    return decorated_function

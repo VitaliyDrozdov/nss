@@ -5,4 +5,6 @@ from quotes.utils.users import (
     UserProfileManager,
     create_admin,
     is_admin,
+    apply_filters,
+    admin_required,
 )
