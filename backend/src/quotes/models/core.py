@@ -1,11 +1,4 @@
-# from sqlalchemy import Column, Integer, String, Date, Boolean
-# from sqlalchemy.orm import relationship, declarative_base
-# from sqlalchemy.ext.declarative import declared_attr
-# from sqlalchemy import MetaData
-
 from quotes.config import db
-
-# # Base = declarative_base(metadata=MetaData(schema="mdm"))
 
 
 class Subjects(db.Model):
