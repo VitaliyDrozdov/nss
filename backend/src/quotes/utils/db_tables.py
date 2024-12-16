@@ -1,86 +1,158 @@
-# import os
-# from sqlalchemy import text
+import random
+from datetime import date
 
-# from quotes.config import db, logger
+from quotes.config import db, logger
+from quotes.models.core import (
+    Documents,
+    FeaturesValues,
+    Models,
+    Products,
+    ProductsFeatures,
+    Subjects,
+)
 
-CREATE_SCHEMAS_COMMANDS = """
-CREATE SCHEMA IF NOT EXISTS mdm;
-CREATE SCHEMA IF NOT EXISTS ml;
-CREATE SCHEMA IF NOT EXISTS fs;
-"""
-CREATE_TABLES_COMMANDS = """
-CREATE TABLE IF NOT EXISTS mdm.subjects (
-    id serial PRIMARY key,
-    first_name varchar(50),
-    second_name varchar(50),
-    middle_name varchar(50),
-    birth_date date,
-    gender varchar(15)
-);
+data = {
+    Subjects: [
+        {
+            "first_name": "John",
+            "second_name": "Doe",
+            "middle_name": "Middle",
+            "birth_date": date(1990, 1, 1),
+            "gender": "Male",
+        },
+        {
+            "first_name": "Jane",
+            "second_name": "Smith",
+            "middle_name": "Ann",
+            "birth_date": date(1992, 2, 2),
+            "gender": "Female",
+        },
+        {
+            "first_name": "Alice",
+            "second_name": "Brown",
+            "middle_name": "Marie",
+            "birth_date": date(1988, 3, 3),
+            "gender": "Female",
+        },
+        {
+            "first_name": "Bob",
+            "second_name": "White",
+            "middle_name": "Lee",
+            "birth_date": date(1995, 4, 4),
+            "gender": "Male",
+        },
+    ],
+    Documents: [
+        {
+            "subject_id": 1,
+            "document_type": "passport",
+            "document_number": 123456789,
+            "issue_date": date(2010, 5, 20),
+        },
+        {
+            "subject_id": 2,
+            "document_type": "passport",
+            "document_number": 987654321,
+            "issue_date": date(2015, 8, 15),
+        },
+        {
+            "subject_id": 3,
+            "document_type": "passport",
+            "document_number": 456123789,
+            "issue_date": date(2018, 12, 10),
+        },
+        {
+            "subject_id": 4,
+            "document_type": "passport",
+            "document_number": 321654987,
+            "issue_date": date(2020, 6, 25),
+        },
+    ],
+    Products: [
+        {"type": "osago"},
+        {"type": "life"},
+    ],
+    ProductsFeatures: [
+        {"product_id": 1, "feature_name": "driver_region"},
+        {"product_id": 1, "feature_name": "driver_kvs"},
+        {"product_id": 1, "feature_name": "driver_gender"},
+        {"product_id": 1, "feature_name": "driver_age"},
+        {"product_id": 1, "feature_name": "driver_bonus"},
+        {"product_id": 2, "feature_name": "client_age"},
+        {"product_id": 2, "feature_name": "client_gender"},
+        {"product_id": 2, "feature_name": "client_smoking_status"},
+        {"product_id": 2, "feature_name": "client_BMI"},
+        {"product_id": 2, "feature_name": "client_occupation_risk"},
+        {"product_id": 2, "feature_name": "client_medical_history"},
+        {"product_id": 2, "feature_name": "client_residence_region_mortality"},
+    ],
+    Models: [
+        {
+            "model_name": "randomcop",
+            "product_id": 1,
+            "status": True,
+            "model_version": "1.0",
+            "model_description": "Скоринговая модель ",
+        },
+        {
+            "model_name": "badcop",
+            "product_id": 1,
+            "status": True,
+            "model_version": "1.1",
+            "model_description": (
+                "Скоринговая модель " "с низкими шансами на одобрение"
+            ),
+        },
+        {
+            "model_name": "goodcop",
+            "product_id": 1,
+            "status": True,
+            "model_version": "1.1",
+            "model_description": "Скоринговая ",
+        },
+        {
+            "model_name": "life_insurance",
+            "product_id": 2,
+            "status": True,
+            "model_version": "0.9",
+            "model_description": (
+                "Модель предназначена для расчета скора по продукту "
+                "СТРАХОВАНИЕ ЖИЗНИ"
+            ),
+        },
+    ],
+}
 
-CREATE TABLE IF NOT EXISTS mdm.documeents (
-    id serial PRIMARY key,
-    subject_id int REFERENCES mdm.subjects (id),
-    document_type varchar(100),
-    document_number int,
-    issue_date date
-);
 
-CREATE TABLE IF NOT EXISTS fs.products (
-    id serial PRIMARY key,
-    type text
-);
-
-CREATE TABLE IF NOT EXISTS ml.models (
-    model_id serial,
-    model_name varchar(25) NOT NULL UNIQUE,
-    product_id int,
-    status bool NOT NULL,
-    model_version varchar(5) NOT NULL DEFAULT 1.0,
-    model_description varchar(100),
-    PRIMARY KEY (model_id),
-    FOREIGN KEY (product_id) REFERENCES fs.products (id)
-);
-
-CREATE TABLE IF NOT EXISTS fs.products_features (
-    product_id int,
-    feature_name varchar(150),
-    PRIMARY key (product_id, feature_name)
-);
-
-CREATE TABLE IF NOT EXISTS features_values (
-    subject_id int,
-    feature_name varchar(100),
-    feature_value varchar(150)
-);
-"""
-
-# def execute_sql(file_path):
-#     try:
-#         with open(file_path, mode="r", encoding="utf-8") as f:
-#             commands = f.read()
-#     except Exception as e:
-#         logger.exception(f"Error: {e}")
-#     with db.engine.connect() as con:
-#         try:
-#             logger.info(f"commands: {commands}")
-#             for command in commands.split(";"):
-#                 if com := command.strip():
-#                     con.execute(text(com))
-#                     logger.info("SQL command executed")
-#                 else:
-#                     logger.error("No SQL command found")
-
-#         except Exception as e:
-#             logger.exception(f"Error executing SQL commands: {e}")
+def bulk_insert_data():
+    try:
+        # for model in reversed(data.keys()):
+        #     db.session.query(model).delete()
+        #     db.session.commit()
+        for model, records in data.items():
+            objects = [model(**record) for record in records]
+            db.session.bulk_save_objects(objects)
+        db.session.commit()
+        insert_features_values()
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Error occured: {e}")
 
 
-# def execute_all(directory):
-#     dir = sorted(os.listdir(directory))
-#     logger.info(f"dir: {dir}")
-#     for filename in dir:
-#         try:
-#             file_path = os.path.join(directory, filename)
-#             execute_sql(file_path)
-#         except Exception as e:
-#             logger.exception(f"Error: {e}")
+def insert_features_values():
+    try:
+        features = ProductsFeatures.query.all()
+        subjects = Subjects.query.all()
+        for f in features:
+            for s in subjects:
+                feature_value = random.uniform(0, 1)
+                value_record = FeaturesValues(
+                    subject_id=s.id,
+                    feature_name=f.feature_name,
+                    feature_value=round(feature_value, 2),
+                )
+                db.session.add(value_record)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Error occured: {e}")

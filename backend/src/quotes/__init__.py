@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
-from quotes.config import Config
+from quotes.config import Config, mail
 from quotes.routes.auth import bp as bp_auth
 from quotes.routes.quotes import bp as bp_quotes
 
@@ -23,4 +23,11 @@ def create_app():
     app.register_blueprint(bp_quotes, url_prefix="/api")
     app.register_blueprint(bp_auth, url_prefix="/api/auth")
 
+    app.config["MAIL_SERVER"] = "localhost"
+    app.config["MAIL_PORT"] = 8025
+    app.config["MAIL_USERNAME"] = None
+    app.config["MAIL_PASSWORD"] = None
+    app.config["MAIL_USE_TLS"] = False
+    app.config["MAIL_USE_SSL"] = False
+    mail.init_app(app)
     return app

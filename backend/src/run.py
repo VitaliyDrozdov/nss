@@ -7,7 +7,8 @@ from quotes.models.auth import db
 from quotes.models.core import Documents  # noqa: F401
 from quotes.models.core import Models  # noqa: F401
 from quotes.models.core import Products  # noqa: F401
-from quotes.models.core import Subjects  # noqa: F401; noqa: F401
+from quotes.models.core import Subjects  # noqa: F401
+from quotes.utils.db_tables import bulk_insert_data
 from quotes.utils.users import create_admin
 
 load_dotenv()
@@ -23,6 +24,7 @@ if __name__ == "__main__":
         with app.app_context():
             db.create_all()  # Создание таблиц в БД
             create_admin()  # Создание пользователя-админа
+            bulk_insert_data()
     except Exception as e:
         print(f"An error occurred: {e}")
 

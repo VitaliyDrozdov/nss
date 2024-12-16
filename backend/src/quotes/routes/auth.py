@@ -1,7 +1,9 @@
 import datetime
 
 from flask import Blueprint, jsonify, request
-from quotes.models.auth import Role, User, db
+from flask_mail import Message
+from quotes.config import db, mail
+from quotes.models.auth import Role, User
 from quotes.utils import UserProfileManager, is_admin, token_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -9,24 +11,27 @@ bp = Blueprint("auth", __name__)
 
 
 @bp.route("/register", methods=["POST"])
-def register():
+@token_required
+def register(cur_user):
     """Регистрация новых пользователей."""
-    username = request.json.get("username")
+    if not is_admin(cur_user):
+        return jsonify({"error": "You do not have permission"}), 403
+    email = request.json.get("email")
     password = request.json.get("password")
-    if not username or not password:
+    if not email or not password:
         return (
             jsonify(
                 {
                     "error": "Missing required fields",
-                    "request_fields": ["username", "password"],
+                    "request_fields": ["email", "password"],
                 }
             ),
             400,
         )
-    if User.query.filter_by(username=username).first():
-        return jsonify({"error": "Username already exists"}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({"error": "email already exists"}), 400
     hashed_password = generate_password_hash(password)
-    new_user = User(username=username, password=hashed_password)
+    new_user = User(email=email, password=hashed_password)
     user_role = Role.query.filter_by(name="userrole").first()
     if not user_role:
         user_role = Role(name="userrole")
@@ -46,9 +51,9 @@ def login():
     Returns:
         string: token
     """
-    username = request.json.get("username")
+    email = request.json.get("email")
     password = request.json.get("password")
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(email=email).first()
     if user and check_password_hash(user.password, password):
         user.generate_token()
         db.session.commit()
@@ -66,6 +71,7 @@ def logout(user):
     return jsonify({"message": "Logged out successfully."}), 200
 
 
+# TODO удалить
 @bp.route("/protected", methods=["GET"])
 @token_required
 def check_protected(user):
@@ -129,3 +135,34 @@ def admin_profile(cur_user, other_user_id):
 
         # TODO    Тут почему то не работает, надо поправить
         return user_manager.delete()
+
+
+@bp.route("/reset_password", methods=["POST"])
+def reset_password():
+    """Запрос на восстановление пароля."""
+    email = request.json.get("email")
+    user = User.query.filter_by(email=email).first()
+
+    if user:
+        user.generate_token()
+        user.token_expiry = datetime.datetime.now() + datetime.timedelta(
+            hours=1
+        )
+        db.session.commit()
+
+        # Отправка email с ссылкой для сброса пароля
+
+        msg = Message(
+            "Password Reset Request",
+            sender="no-reply@neoscoring.com",
+            recipients=[email],
+        )
+        msg.body = (
+            "Для сброса пароля перейдите по ссылке: "
+            f"https://neoscoring.com/reset_password/{user.token}"
+        )
+        mail.send(msg)
+
+        return jsonify({"message": "Message sent."}), 200
+
+    return jsonify({"error": "Email not found"}), 404

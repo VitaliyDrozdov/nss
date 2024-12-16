@@ -2,11 +2,12 @@ import logging
 import os
 
 from dotenv import load_dotenv
+from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
-
 db = SQLAlchemy()
+mail = Mail()
 
 
 class Config:
@@ -19,9 +20,11 @@ class Config:
     DB_HOST = os.getenv("DB_HOST")
     DB_PORT = os.getenv("DB_PORT")
     DB_NAME = os.getenv("DB_NAME")
-    SQLALCHEMY_DATABASE_URI = (
-        f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
+    # SQLALCHEMY_DATABASE_URI = (
+    #     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    # )
+    SQLALCHEMY_DATABASE_URI = "sqlite:///quotes.db"
+
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv(
         "SQLALCHEMY_TRACK_MODIFICATIONS", "False"
     )

@@ -26,16 +26,17 @@ class Role(db.Model):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=True)
     password = db.Column(db.String(512), nullable=False)
     token = db.Column(db.String(100), unique=True, nullable=False)
     token_expiry = db.Column(db.DateTime, nullable=False)
     roles = db.relationship("Role", secondary=roles_users)
-    email = db.Column(db.String(50), unique=True, nullable=True)
+    email = db.Column(db.String(50), unique=True, nullable=False)
     first_name = db.Column(db.String(50), nullable=True)
     second_name = db.Column(db.String(50), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.now())
     last_login = db.Column(db.DateTime)
+    # is_blocked = db.Column(db.Boolean, default=False)
 
     def generate_token(self, expiration=3600):
         token = str(uuid.uuid4())

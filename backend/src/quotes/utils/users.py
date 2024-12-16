@@ -14,10 +14,10 @@ def create_admin():
         return "Admin user already exists"
 
     admin_password = "admin"
-    admin_user = User.query.filter_by(username="admin").first()
+    admin_user = User.query.filter_by(email="admin@email.ru").first()
     if not admin_user:
         hashed_password = generate_password_hash(admin_password)
-        admin_user = User(username="admin", password=hashed_password)
+        admin_user = User(email="admin@mail.ru", password=hashed_password)
         admin_user.roles.append(admin_role)
         admin_user.generate_token()
         db.session.add(admin_user)
@@ -108,3 +108,41 @@ class UserProfileManager:
 
 def is_admin(user):
     return any(role.name == "admin" for role in user.roles)
+
+
+# class BaseCLICommand:
+#     def __init__(self, app):
+#         self.app = app
+
+#     def register(self):
+#         raise NotImplementedError()
+
+
+# class GenerateUsers(BaseCLICommand):
+#     def register(self):
+#         @self.app.cli.command("create_users")
+#         def create_users():
+#             roles = ("admin", "userrole")
+#             data = {
+#                 "admin1": {
+#                     "username": "admin1",
+#                     "email": "admin1@example.com",
+#                     "password": "admin1_password",
+#                     "role": roles[0],
+#                 },
+#                 "user1": {
+#                     "username": "user1",
+#                     "email": "user1@example.com",
+#                     "password": "user1_password",
+#                     "role": roles[1],
+#                 },
+#                 "user2": {
+#                     "username": "admin1",
+#                     "email": "admin1@example.com",
+#                     "password": "admin1_password",
+#                     "role": roles[1],
+#                 },
+#             }
+
+#         with self.app.app_context():
+#             db.create_all()
