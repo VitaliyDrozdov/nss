@@ -9,6 +9,8 @@ paths:
       summary: Выводит результат скоринга по входным данным
       tags:
         - Quotes
+      security:
+        - BearerAuth: []
       requestBody:
         description: Данные котировки
         required: true
@@ -25,12 +27,25 @@ paths:
                 $ref: '#/components/schemas/QuoteResponse'
         '400':
           description: Ошибка валидации данных
+        '403':
+          description: Попытка доступа к ресурсу не админу
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: You do not have permission
+
 
   /api/auth/register:
     post:
       summary: Регистрация пользователя
       tags:
-        - Authentication
+        - Auth
+      security:
+        - BearerAuth: []
       requestBody:
         description: Данные для регистрации
         required: true
@@ -57,18 +72,8 @@ paths:
                   message:
                     type: string
                     example: User registered successfully.
-        # '400':
-        #   description: Username already exists
-        #   content:
-        #     application/json:
-        #       schema:
-        #         type: object
-        #         properties:
-        #           message:
-        #             type: string
-        #             example: Username already exists
         '400':
-          description: Missing required fields
+          description: Username already exists
           content:
             application/json:
               schema:
@@ -76,12 +81,22 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Missing required fields
+                    example: Username already exists
+        # '400':
+        #   description: Missing required fields
+        #   content:
+        #     application/json:
+        #       schema:
+        #         type: object
+        #         properties:
+        #           message:
+        #             type: string
+        #             example: Missing required fields
   /api/auth/login:
     post:
       summary: Авторизация пользователя
       tags:
-        - Authentication
+        - Auth
       requestBody:
         description: Учетные данные пользователя
         required: true
@@ -113,15 +128,9 @@ paths:
     post:
       summary: Выход из системы
       tags:
-        - Authentication
+        - Auth
       security:
         - BearerAuth: []
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Успешный выход
@@ -153,46 +162,13 @@ paths:
                   error:
                     type: string
                     example: Invalid or expired token.
-  /api/auth/protected:
-    get:
-      summary: Тестовый доступ к защищенному ресурсу
-      tags:
-        - Authentication
-      security:
-        - BearerAuth: []
-      # parameters:
-      #   - name: Authorization
-      #     in: header
-      #     required: true
-      #     schema:
-      #       type: string
-      responses:
-        '200':
-          description: Доступ разрешен
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Access granted
-        '403':
-          description: Токен отсутствует или недействителен
   /api/auth/profile:
     get:
-      summary: Получение информации о текущей пользовате
+      summary: Получение информации о текущем пользовате
       tags:
         - Profile
       security:
         - BearerAuth: []
-      # parameters:
-      #   - name: Authorization
-      #     in: header
-      #     required: true
-      #     schema:
-      #       type: string
-
       responses:
         '200':
           description: Данные получены
@@ -219,25 +195,15 @@ paths:
                   last_login:
                     type: string
                     example: '2024-11-24T20:22:50.872068'
-                  roles:
-                    type: string
-                    example:
-                      - admin
-                      - userrole
+
         '403':
           description: Токен отсутствует или недействителен
     patch:
-      summary: Обновление информации о текущей пользовате
+      summary: Обновление информации о текущем пользовате
       tags:
         - Profile
       security:
         - BearerAuth: []
-      # parameters:
-      #   - name: Authorization
-      #     in: header
-      #     required: true
-      #     schema:
-      #       type: string
         - name: password
           required: false
           in: query
@@ -254,12 +220,6 @@ paths:
           required: false
           in: query
           description: Новая фамилия
-          schema:
-            type: string
-        - name: email
-          required: false
-          in: query
-          description: Новый email
           schema:
             type: string
       responses:
@@ -301,12 +261,6 @@ paths:
         - Profile
       security:
         - BearerAuth: []
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            type: string
       responses:
         '204':
           description: Пользователь удален
@@ -376,8 +330,17 @@ paths:
                     example:
                       - admin
                       - userrole
+                  login_attempts:
+                    type: int
+                    example: 3
+                  is_blocked:
+                    type: bool
+                    example: False
+                  last_password_reset:
+                    type: string
+                    example: '2024-11-24T20:22:50.872068'
         '403':
-          description: Попытка доступа к ресусру не админу
+          description: Попытка доступа к ресурсу не админу
           content:
             application/json:
               schema:
@@ -389,7 +352,7 @@ paths:
 
 
     patch:
-      summary: Обновление информации о пользовате
+      summary: Обновление информации о пользователе
       tags:
         - Admin
       security:
@@ -426,13 +389,12 @@ paths:
           description: Новая фамилия
           schema:
             type: string
-        - name: email
+        - name: is_blocked
           required: false
           in: query
-          description: Новый email
+          description: Статус
           schema:
-            type: string
-
+            type: boolean
         - name: roles
           required: false
           in: query
@@ -471,7 +433,7 @@ paths:
                     type: string
                     example: Username already exists
         # '403':
-        #   description: Попытка доступа к ресусру не админу
+        #   description: Попытка доступа к ресурсу не админу
         #   content:
         #     application/json:
         #       schema:
@@ -527,6 +489,206 @@ paths:
                   error:
                     type: string
                     example: Failed to delete profile
+  /api/auth/reset_password:
+    post:
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      summary: Request password reset
+      description: Sends a password reset link to the provided email address.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+      responses:
+        '200':
+          description: Reset link sent successfully.
+        '404':
+          description: Email not found.
+        '500':
+          description: Failed to send email.
+
+  /api/auth/reset_password/{uuid}:
+    post:
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+      summary: Reset user password
+      description: Resets the user password using the provided reset token.
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: new_password123
+      responses:
+        '200':
+          description: Password reset successfully.
+        '400':
+          description: Invalid or expired reset link.
+
+  /api/auth/admin/users:
+    get:
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      summary: Get all users
+      description: Retrieve a list of all users with optional filtering.
+      parameters:
+        - name: email
+          in: query
+          schema:
+            type: string
+        - name: username
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: is_blocked
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of users retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        email:
+                          type: string
+                        username:
+                          type: string
+                        first_name:
+                          type: string
+                        second_name:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                        last_login:
+                          type: string
+                          format: date-time
+                        is_blocked:
+                          type: boolean
+                        login_attempts:
+                          type: integer
+                        last_password_reset:
+                          type: string
+                          format: date-time
+                        roles:
+                          type: array
+                          items:
+                            type: string
+                  total:
+                    type: integer
+                  pages:
+                    type: integer
+                  current_page:
+                    type: integer
+                  per_page:
+                    type: integer
+
+  /api/auth/admin/users/export:
+    get:
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      summary: Export users
+      description: Export user data to a CSV file.
+      responses:
+        '200':
+          description: CSV file generated successfully.
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  /api/auth/admin/roles:
+    get:
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      summary: Get all roles
+      description: Retrieve a list of all roles.
+      responses:
+        '200':
+          description: List of roles retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: string
+
+    post:
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      summary: Create a new role
+      description: Create a new role in the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: admin
+      responses:
+        '201':
+          description: Role created successfully.
+        '400':
+          description: Role name is required or role already exists.
+
 components:
   securitySchemes:
     BearerAuth:

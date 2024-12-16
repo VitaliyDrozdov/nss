@@ -50,7 +50,6 @@ class BaseProfileManager:
             "second_name",
             "created_at",
             "last_login",
-            "password",
         }
 
     def get(self):
@@ -68,7 +67,12 @@ class BaseProfileManager:
         return jsonify(data)
 
     def update(self, data):
-        fields = self.get_fields()
+        fields = {
+            "username",
+            "first_name",
+            "second_name",
+            "password",
+        }
         if not data or not any(key in fields for key in data):
             return jsonify({"error": "No valid fields to update"}), 400
 
@@ -81,6 +85,7 @@ class BaseProfileManager:
         self.db_session.commit()
         return jsonify({"message": "Profile updated"}), 200
 
+    # TODO: не работает
     def delete(self):
         try:
             self.db_session.delete(self.user)
@@ -139,6 +144,8 @@ class AdminProfileManager(BaseProfileManager):
                     ),
                     400,
                 )
+            self.user.roles = roles_objects
+            self.db_session.commit()
             data.pop("roles")
         is_blocked = data.get("is_blocked")
         if is_blocked is not None:
@@ -146,7 +153,7 @@ class AdminProfileManager(BaseProfileManager):
             if not is_blocked:
                 self.user.login_attempts = 0
             data.pop("is_blocked")
-        if not any(key in self.get_fields() for key in data):
+        if not data or not any(key in self.get_fields() for key in data):
             self.db_session.commit()
             return jsonify({"message": "Profile updated"}), 200
         return super().update(data)
