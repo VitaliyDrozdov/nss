@@ -10,9 +10,7 @@
 
 .db
 swagger_example.yml
-swagger_old.json
-swagger.json
-
+db_tables_archive.py
 
 data/
 .mypy_cache/
