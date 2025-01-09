@@ -1,3 +1,4 @@
+import hashlib
 import logging
 
 from flask import Blueprint, jsonify, request
@@ -105,24 +106,42 @@ def get_features(data, product_code):
     return {"runId": run_id, "features": features}
 
 
-def send_vector_to_proxy(data, product_code):
-    """Заглушка для отправки вектора в Proxy Service."""
-    run_id = data["runId"]
-    prediction_response = {
-        "runId": run_id,
-        "routedTo": "osago",
-        "predict": {"percent": "38.62%", "score": 0.3862294713942135},
-    }
+def hash_based_score(input_string, min_value=0.0, max_value=1.0):
+    """Генерирует значение в заданном диапазоне на основе хэша строки."""
+    hash_value = int(hashlib.md5(input_string.encode()).hexdigest(), 16)
+    range_size = max_value - min_value
+    normalized_value = (
+        hash_value % 10000
+    ) / 10000.0  # Значение в диапазоне [0, 1]
+    return min_value + normalized_value * range_size
 
-    logger.info("Got result of prediction: %s", prediction_response)
-    return prediction_response
+
+def predict(data, product_code=1, model_id=1):
+    """Генерирует значение в заданном диапазоне на основе хэша строки."""
+    features_string = str(data["features"]) + str(model_id)
+    if model_id == 1:  # randomcop
+        prediction = hash_based_score(features_string, 0.0, 1.0)
+    elif model_id == 2:  # badcop
+        prediction = hash_based_score(features_string, 0.0, 0.5)
+    elif model_id == 3:  # goodcop
+        prediction = hash_based_score(features_string, 0.5, 1.0)
+    elif model_id == 4:  # life_insurance
+        prediction = hash_based_score(features_string, 0.0, 1.0)
+    else:
+        prediction = None  # Неизвестная модель
+
+    logger.info("Got result of prediction: %s", prediction)
+    return {
+        "predict": {
+            "percent": f"{prediction * 100:.2f}%",
+            "score": prediction,
+        },
+    }
 
 
 @bp.route("/quote", methods=["POST"])
 def handle_quote():
     """
-    Эндпоинт /quote для сервиса оркестрации.
-
     Принимает на вход json, отправляет запросы на MDM, Feature
     Proxy.
     Возращает результат скоринга из ML модели.
@@ -152,9 +171,10 @@ def handle_quote():
     features_response = get_features(mdm_response, product_code)
     if not features_response:
         return jsonify({"error": "no features found"}), 404
-    # prediction = send_vector_to_proxy(
-    #     features_response,
-    #     product_code,
-    # )
-    # return jsonify(prediction), 200
-    return jsonify(features_response)
+    prediction = predict(
+        features_response,
+        product_code,
+    )
+    if not prediction:
+        return jsonify({"error": "could not make predicition"}), 400
+    return jsonify(prediction), 200
