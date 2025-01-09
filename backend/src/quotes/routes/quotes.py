@@ -1,18 +1,13 @@
 import hashlib
-import logging
 
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
 from sqlalchemy import text
 
-from quotes.config import db
+from quotes.config import db, logger
 from quotes.utils import validate_input_data
 
 bp = Blueprint("quotes", __name__)
-
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 def send_to_mdm(data):
