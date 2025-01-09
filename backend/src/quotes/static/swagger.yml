@@ -210,7 +210,7 @@ paths:
         '403':
           description: Токен отсутствует или недействителен
     patch:
-      summary: Обновление информации о текущем пользовате
+      summary: Обновление информации о текущем пользователе
       tags:
         - Profile
       security:
@@ -297,7 +297,7 @@ paths:
                     example: Failed to delete profile
   /api/auth/admin/{user_id}:
     get:
-      summary: Получение информации о другом пользовате по user_id
+      summary: Получение информации о другом пользователе по user_id
       tags:
         - Admin
       security:
