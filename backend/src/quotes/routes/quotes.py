@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def send_to_mdm(data):
     """
-    Отправка данных на MDM микросервис.
+    Получение subject ids.
 
     Args:
         data (QuoteData): Validated data.
@@ -70,6 +70,7 @@ def send_to_mdm(data):
 
 
 def get_features(data, product_code):
+    """Получение списка фичей."""
     run_id = data["runId"]
     subject_ids = data["subjectIds"]
     logger.info(f"Get features for subjectIds: {subject_ids}")
@@ -117,7 +118,7 @@ def hash_based_score(input_string, min_value=0.0, max_value=1.0):
 
 
 def predict(data, product_code=1, model_id=1):
-    """Генерирует значение в заданном диапазоне на основе хэша строки."""
+    """Получение скорингового балла."""
     features_string = str(data["features"]) + str(model_id)
     if model_id == 1:  # randomcop
         prediction = hash_based_score(features_string, 0.0, 1.0)
