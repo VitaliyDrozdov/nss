@@ -34,7 +34,7 @@ class Products(db.Model):
 
 
 class ProductsFeatures(db.Model):
-    __tablename__ = "products_features"
+    __tablename__ = "product_features"
     # __table_args__ = {"schema": "fs"}
 
     product_id = db.Column(
@@ -44,7 +44,7 @@ class ProductsFeatures(db.Model):
 
 
 class FeaturesValues(db.Model):
-    __tablename__ = "features_values"
+    __tablename__ = "feature_values"
     # __table_args__ = {"schema": "fs"}
 
     subject_id = db.Column(

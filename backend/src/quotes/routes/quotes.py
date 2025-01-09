@@ -2,7 +2,9 @@ import logging
 
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
-from quotes.core.mdm import send_to_mdm
+from sqlalchemy import text
+
+from quotes.config import db
 from quotes.utils import validate_input_data
 
 bp = Blueprint("quotes", __name__)
@@ -12,25 +14,95 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def send_to_mdm(data):
+    """
+    Отправка данных на MDM микросервис.
+
+    Args:
+        data (QuoteData): Validated data.
+
+    Returns:
+        dict: словарь из run ID и subject IDs.
+        tuple: в случае ошибки JSON response и HTTP status code.
+    """
+    run_id = data.quote.header.runId
+    subjects = data.quote.subjects
+    subject_ids = list()
+    for subject in subjects:
+        first_name = subject.firstName
+        second_name = subject.secondName
+        birth_date = subject.birthDate
+        documents = subject.documents
+        for document in documents:
+            document_type = document.documentType
+            document_number = document.documentNumber
+            issue_date = document.issueDate
+            query = text(
+                """
+                SELECT s.id
+                FROM subjects s
+                JOIN documents d ON s.id = d.subject_id
+                WHERE s.first_name = :first_name
+                AND s.second_name = :second_name
+                AND s.birth_date = :birth_date
+                AND d.document_type = :document_type
+                AND d.document_number = :document_number
+                AND d.issue_date = :issue_date
+            """
+            )
+            result = db.session.execute(
+                query,
+                {
+                    "first_name": first_name,
+                    "second_name": second_name,
+                    "birth_date": birth_date,
+                    "document_type": document_type,
+                    "document_number": document_number,
+                    "issue_date": issue_date,
+                },
+            ).fetchall()
+            if result:
+                subject_ids.extend(row[0] for row in result)
+    if not subject_ids:
+        return None
+    return {"runId": run_id, "subjectIds": subject_ids}
+
+
 def get_features(data, product_code):
-    """Заглушка для запроса фичей из Feature Service."""
     run_id = data["runId"]
     subject_ids = data["subjectIds"]
     logger.info(f"Get features for subjectIds: {subject_ids}")
-    features_response = {
-        "runId": run_id,
-        "features": [
-            {
-                "driver_region": "Moscow",
-                "driver_kvs": "0.7",
-                "driver_gender": "male",
-                "driver_age": "30",
-                "driver_bonus": "1",
-            }
-        ],
-    }
-    logger.info("Получены фичи: %s", features_response)
-    return features_response
+    features = list()
+    for subj_id in subject_ids:
+
+        query = text(
+            """SELECT features.feature_name, feature_value
+            FROM "product_features" features
+
+            JOIN "feature_values" feature_values
+            ON features.feature_name = feature_values.feature_name
+
+            JOIN "products" products
+            ON products.id = features.product_id
+
+            WHERE
+            products.id = :product_code
+            AND subject_id = :subj_id
+            """
+        )
+        result = db.session.execute(
+            query, {"product_code": product_code, "subj_id": subj_id}
+        ).fetchall()
+        feature_dict = dict()
+        for res in result:
+            feature_name, feature_value = res
+            feature_dict[feature_name] = feature_value
+        if feature_dict:
+            features.append(feature_dict)
+    logger.info("Получены фичи: %s", features)
+    if not features:
+        return None
+    return {"runId": run_id, "features": features}
 
 
 def send_vector_to_proxy(data, product_code):
@@ -74,10 +146,15 @@ def handle_quote():
         return jsonify({"error": f"internal server error {str(e)}"}), 500
 
     mdm_response = send_to_mdm(validated_data)  # отправка запроса на mdm
+    if not mdm_response:
+        return jsonify({"error": "no subjects found with input data"}), 404
     product_code = validated_data.quote.product.productCode
     features_response = get_features(mdm_response, product_code)
-    prediction = send_vector_to_proxy(
-        features_response,
-        product_code,
-    )
-    return jsonify(prediction), 200
+    if not features_response:
+        return jsonify({"error": "no features found"}), 404
+    # prediction = send_vector_to_proxy(
+    #     features_response,
+    #     product_code,
+    # )
+    # return jsonify(prediction), 200
+    return jsonify(features_response)

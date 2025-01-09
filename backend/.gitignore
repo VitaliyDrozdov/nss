@@ -11,6 +11,7 @@
 .db
 swagger_example.yml
 db_tables_archive.py
+quote_model_prod.json
 
 data/
 .mypy_cache/

@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask_migrate import Migrate
+
 from quotes import create_app
 from quotes.models.auth import db
 from quotes.models.core import Documents  # noqa: F401
@@ -31,5 +32,5 @@ if __name__ == "__main__":
     app.run(
         host=os.getenv("FLASK_RUN_HOST", "127.0.0.1"),
         port=os.getenv("FLASK_RUN_PORT", "5000"),
-        debug=os.getenv("DEBUG", "False"),
+        debug=os.getenv("DEBUG", "True"),
     )

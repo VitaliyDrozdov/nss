@@ -31,9 +31,10 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      # helthcheck
-      - users_db
-      - smtp-server
+      users_db:
+        condition: service_healthy
+      smtp-server:
+        condition: service_healthy
     networks:
       - nss_network
 
