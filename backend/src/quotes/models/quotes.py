@@ -20,8 +20,10 @@ class Document(BaseModel):
     @field_validator("documentType")
     @classmethod
     def validate_document_type(cls, value):
-        if value != "passport":
-            raise ValueError('document type must be "passport"')
+        if value not in ["passport", "driving license"]:
+            raise ValueError(
+                'document type must be "passport" or "driving license"'
+            )
         return value
 
     @model_validator(mode="after")

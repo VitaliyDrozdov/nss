@@ -20,17 +20,17 @@ class Config:
     DB_HOST = os.getenv("DB_HOST")
     DB_PORT = os.getenv("DB_PORT")
     DB_NAME = os.getenv("DB_NAME")
-    # SQLALCHEMY_DATABASE_URI = (
-    #     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    # )
-    SQLALCHEMY_DATABASE_URI = "sqlite:///quotes.db"
+    if os.getenv("USE_SQLITE").lower() == "true":
+        SQLALCHEMY_DATABASE_URI = "sqlite:///quotes.db"
+    else:
+        SQLALCHEMY_DATABASE_URI = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"  # noqa: E501
 
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv(
         "SQLALCHEMY_TRACK_MODIFICATIONS", "False"
     )
     SQL_SCRIPTS_DIR = os.getenv("SQL_SCRIPTS_DIR")
     # Flask-Mail configuration for development
-    # MAIL_SERVER = "smtp-server"
+    MAIL_SERVER = "smtp-server"
     MAIL_SERVER = "localhost"
     MAIL_PORT = 1025
     MAIL_USE_TLS = False

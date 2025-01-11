@@ -2,8 +2,7 @@ from quotes.config import db
 
 
 class Subjects(db.Model):
-    __tablename__ = "subjects"
-    # __table__args__ = {"schema": "mdm"}
+    __tablename__ = "mdm.subjects"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     first_name = db.Column(db.String(50))
@@ -14,11 +13,10 @@ class Subjects(db.Model):
 
 
 class Documents(db.Model):
-    __tablename__ = "documents"
-    # __table_args__ = {"schema": "mdm"}
+    __tablename__ = "mdm.documents"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    subject_id = db.Column(db.Integer, db.ForeignKey("subjects.id"))
+    subject_id = db.Column(db.Integer, db.ForeignKey("mdm.subjects.id"))
     document_type = db.Column(db.String(100))
     document_number = db.Column(db.Integer)
     issue_date = db.Column(db.Date)
@@ -26,7 +24,7 @@ class Documents(db.Model):
 
 
 class Products(db.Model):
-    __tablename__ = "products"
+    __tablename__ = "fs.products"
     # __table_args__ = {"schema": "fs"}
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -34,33 +32,33 @@ class Products(db.Model):
 
 
 class ProductsFeatures(db.Model):
-    __tablename__ = "product_features"
+    __tablename__ = "fs.product_features"
     # __table_args__ = {"schema": "fs"}
 
     product_id = db.Column(
-        db.Integer, db.ForeignKey("products.id"), primary_key=True
+        db.Integer, db.ForeignKey("fs.products.id"), primary_key=True
     )
     feature_name = db.Column(db.String(150), primary_key=True)
 
 
 class FeaturesValues(db.Model):
-    __tablename__ = "feature_values"
+    __tablename__ = "fs.feature_values"
     # __table_args__ = {"schema": "fs"}
 
     subject_id = db.Column(
-        db.Integer, db.ForeignKey("subjects.id"), primary_key=True
+        db.Integer, db.ForeignKey("mdm.subjects.id"), primary_key=True
     )
     feature_name = db.Column(db.String(100), primary_key=True)
     feature_value = db.Column(db.String(150))
 
 
 class Models(db.Model):
-    __tablename__ = "models"
+    __tablename__ = "ml.models"
     # __table_args__ = {"schema": "ml"}
 
     model_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     model_name = db.Column(db.String(25), nullable=False, unique=True)
-    product_id = db.Column(db.Integer, db.ForeignKey("products.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("fs.products.id"))
     status = db.Column(db.Boolean, nullable=False)
     model_version = db.Column(db.String(5), nullable=False, default="1.0")
     model_description = db.Column(db.String(100))

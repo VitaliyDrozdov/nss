@@ -4,17 +4,22 @@ from datetime import datetime, timedelta
 from quotes.config import db
 
 roles_users = db.Table(
-    "roles_users",
+    "auth.roles_users",
     db.Column(
-        "user_id", db.Integer, db.ForeignKey("user.id", ondelete="CASCADE")
+        "user_id",
+        db.Integer,
+        db.ForeignKey("auth.user.id", ondelete="CASCADE"),
     ),
     db.Column(
-        "role_id", db.Integer, db.ForeignKey("role.id", ondelete="CASCADE")
+        "role_id",
+        db.Integer,
+        db.ForeignKey("auth.role.id", ondelete="CASCADE"),
     ),
 )
 
 
 class Role(db.Model):
+    __tablename__ = "auth.role"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     users = db.relationship(
@@ -25,6 +30,7 @@ class Role(db.Model):
 
 
 class User(db.Model):
+    __tablename__ = "auth.user"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=True)
     password = db.Column(db.String(512), nullable=False)
