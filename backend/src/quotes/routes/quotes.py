@@ -36,8 +36,8 @@ def send_to_mdm(data):
             query = text(
                 """
                 SELECT s.id
-                FROM subjects s
-                JOIN documents d ON s.id = d.subject_id
+                FROM "mdm.subjects" s
+                JOIN "mdm.documents" d ON s.id = d.subject_id
                 WHERE s.first_name = :first_name
                 AND s.second_name = :second_name
                 AND s.birth_date = :birth_date
@@ -73,17 +73,17 @@ def get_features(data, product_code):
     for subj_id in subject_ids:
 
         query = text(
-            """SELECT fs.features.feature_name, feature_value
-            FROM fs.product_features features
+            """SELECT features.feature_name, feature_value
+            FROM "fs.product_features" features
 
-            JOIN fs.feature_values feature_values
+            JOIN "fs.feature_values" feature_values
             ON features.feature_name = feature_values.feature_name
 
-            JOIN fs.products products
-            ON products.id = features.product_id
+            JOIN "fs.products" products
+            ON products.product_code = features.product_code
 
             WHERE
-            products.id = :product_code
+            products.product_code = :product_code
             AND subject_id = :subj_id
             """
         )
