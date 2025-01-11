@@ -28,7 +28,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv(
         "SQLALCHEMY_TRACK_MODIFICATIONS", "False"
     )
-    SQL_SCRIPTS_DIR = os.getenv("SQL_SCRIPTS_DIR")
+    # SQL_SCRIPTS_DIR = os.getenv("SQL_SCRIPTS_DIR")
     # Flask-Mail configuration for development
     MAIL_SERVER = "smtp-server"
     MAIL_SERVER = "localhost"

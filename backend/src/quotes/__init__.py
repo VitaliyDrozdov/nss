@@ -1,9 +1,18 @@
 from flask import Flask
 from flask_cors import CORS
+from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
-from quotes.config import Config, mail
+from quotes.config import Config, mail, db
 from quotes.routes.auth import bp as bp_auth
 from quotes.routes.quotes import bp as bp_quotes
+
+
+from quotes.models.core import Documents  # noqa: F401
+from quotes.models.core import Models  # noqa: F401
+from quotes.models.core import Products  # noqa: F401
+from quotes.models.core import Subjects  # noqa: F401
+
+from quotes.models.dq import Actions  # noqa: F401
 
 
 def create_app():
@@ -19,9 +28,9 @@ def create_app():
     app.register_blueprint(
         swaggerui_blueprint, url_prefix=app.config["SWAGGER_URL"]
     )
-
     app.register_blueprint(bp_quotes, url_prefix="/api")
     app.register_blueprint(bp_auth, url_prefix="/api/auth")
-
+    db.init_app(app)  # Связь экземпляра бд с приложением
+    migrate = Migrate(app, db)  # Создание миграций
     mail.init_app(app)
     return app

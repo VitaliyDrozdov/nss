@@ -69,34 +69,37 @@ data = {
         },
     ],
     Products: [
-        {"type": "osago"},
-        {"type": "life"},
+        {"product_code": "prod001", "type": "osago"},
+        {"product_code": "prod002", "type": "life"},
     ],
     ProductsFeatures: [
-        {"product_id": 1, "feature_name": "driver_region"},
-        {"product_id": 1, "feature_name": "driver_kvs"},
-        {"product_id": 1, "feature_name": "driver_gender"},
-        {"product_id": 1, "feature_name": "driver_age"},
-        {"product_id": 1, "feature_name": "driver_bonus"},
-        {"product_id": 2, "feature_name": "client_age"},
-        {"product_id": 2, "feature_name": "client_gender"},
-        {"product_id": 2, "feature_name": "client_smoking_status"},
-        {"product_id": 2, "feature_name": "client_BMI"},
-        {"product_id": 2, "feature_name": "client_occupation_risk"},
-        {"product_id": 2, "feature_name": "client_medical_history"},
-        {"product_id": 2, "feature_name": "client_residence_region_mortality"},
+        {"product_code": "prod001", "feature_name": "driver_region"},
+        {"product_code": "prod001", "feature_name": "driver_kvs"},
+        {"product_code": "prod001", "feature_name": "driver_gender"},
+        {"product_code": "prod001", "feature_name": "driver_age"},
+        {"product_code": "prod001", "feature_name": "driver_bonus"},
+        {"product_code": "prod002", "feature_name": "client_age"},
+        {"product_code": "prod002", "feature_name": "client_gender"},
+        {"product_code": "prod002", "feature_name": "client_smoking_status"},
+        {"product_code": "prod002", "feature_name": "client_BMI"},
+        {"product_code": "prod002", "feature_name": "client_occupation_risk"},
+        {"product_code": "prod002", "feature_name": "client_medical_history"},
+        {
+            "product_code": "prod002",
+            "feature_name": "client_residence_region_mortality",
+        },
     ],
     Models: [
         {
             "model_name": "randomcop",
-            "product_id": 1,
+            "product_code": "prod001",
             "status": True,
             "model_version": "1.0",
             "model_description": "Скоринговая модель ",
         },
         {
             "model_name": "badcop",
-            "product_id": 1,
+            "product_code": "prod001",
             "status": True,
             "model_version": "1.1",
             "model_description": (
@@ -105,14 +108,14 @@ data = {
         },
         {
             "model_name": "goodcop",
-            "product_id": 1,
+            "product_code": "prod001",
             "status": True,
             "model_version": "1.1",
             "model_description": "Скоринговая ",
         },
         {
             "model_name": "life_insurance",
-            "product_id": 2,
+            "product_code": "prod002",
             "status": True,
             "model_version": "0.9",
             "model_description": (
@@ -124,11 +127,8 @@ data = {
 }
 
 
-def bulk_insert_data():
+def bulk_insert_core_data():
     try:
-        # for model in reversed(data.keys()):
-        #     db.session.query(model).delete()
-        #     db.session.commit()
         for model, records in data.items():
             objects = [model(**record) for record in records]
             db.session.bulk_save_objects(objects)

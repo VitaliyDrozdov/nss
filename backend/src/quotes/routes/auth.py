@@ -4,7 +4,7 @@ import os
 from io import StringIO
 
 from dotenv import load_dotenv
-from flask import Blueprint, Response, jsonify, request
+from flask import Blueprint, Response, current_app, jsonify, request
 from flask_mail import Message
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -350,3 +350,20 @@ def create_role(user):
     elif request.method == "GET":
         roles = Role.query.all()
         return jsonify({"roles": [role.name for role in roles]})
+
+
+@bp.route("/admin/endpoints", methods=["GET"])
+# @token_required
+# @admin_required
+def get_endpoints():
+    """Список всех эндпоинтовю."""
+    endpoints = []
+    for rule in current_app.url_map.iter_rules():
+        endpoints.append(
+            {
+                "endpoint": rule.endpoint,
+                "url": str(rule),
+                "methods": list(rule.methods),
+            }
+        )
+    return jsonify(endpoints)

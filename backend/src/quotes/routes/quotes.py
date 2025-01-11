@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from sqlalchemy import text
 
 from quotes.config import db, logger
-from quotes.utils import validate_input_data
+from quotes.routes.dq import dq1
 
 bp = Blueprint("quotes", __name__)
 
@@ -73,13 +73,13 @@ def get_features(data, product_code):
     for subj_id in subject_ids:
 
         query = text(
-            """SELECT features.feature_name, feature_value
-            FROM "product_features" features
+            """SELECT fs.features.feature_name, feature_value
+            FROM fs.product_features features
 
-            JOIN "feature_values" feature_values
+            JOIN fs.feature_values feature_values
             ON features.feature_name = feature_values.feature_name
 
-            JOIN "products" products
+            JOIN fs.products products
             ON products.id = features.product_id
 
             WHERE
@@ -147,7 +147,7 @@ def handle_quote():
     if input_data is None:
         return jsonify({"error": "No data in request"}), 400
     try:
-        validated_data = validate_input_data(input_data)
+        validated_data = dq1(input_data)
     except ValidationError as e:
         logger.error(
             f"validation error: {str(e)}",
@@ -156,10 +156,6 @@ def handle_quote():
             jsonify({"error": "validation error", "details": f"{str(e)}"}),
             400,
         )
-    except Exception as e:
-        logger.info(f"Internal error: {str(e)}")
-        return jsonify({"error": f"internal server error {str(e)}"}), 500
-
     mdm_response = send_to_mdm(validated_data)  # отправка запроса на mdm
     if not mdm_response:
         return jsonify({"error": "no subjects found with input data"}), 404
