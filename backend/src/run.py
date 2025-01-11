@@ -3,9 +3,8 @@ import os
 from dotenv import load_dotenv
 
 from quotes import create_app
-from quotes.models.auth import db
-from quotes.utils.db_tables import bulk_insert_core_data
-from quotes.utils.users import create_admin
+from quotes.config import db
+from quotes.utils import bulk_insert_core_data, create_admin
 
 load_dotenv()
 

@@ -1,7 +1,8 @@
 import hashlib
 
 from flask import Blueprint, jsonify, request
-from pydantic import ValidationError
+
+# from pydantic import ValidationError
 from sqlalchemy import text
 
 from quotes.config import db, logger
@@ -147,13 +148,20 @@ def handle_quote():
     if input_data is None:
         return jsonify({"error": "No data in request"}), 400
     try:
-        validated_data = dq1(input_data)
-    except ValidationError as e:
-        logger.error(
-            f"validation error: {str(e)}",
-        )
+        # ответ от dq1 эндпоинта:
+        dq1_response = dq1(input_data)
+        if isinstance(dq1_response, tuple):
+            dq1_data, dq1_status_code = dq1_response
+            # если ошибка, то добавляем указание какая dq не прошла:
+            if dq1_status_code != 200:
+                dq1_data = dq1_data.get_json()
+                dq1_data["type"] = "DQ1 failed"
+                return jsonify(dq1_data), dq1_status_code
+        # если все ок, то просто дальше возращаем ответ:c
+        validated_data = dq1_response
+    except Exception as e:
         return (
-            jsonify({"error": "validation error", "details": f"{str(e)}"}),
+            jsonify({"error": "Exception occured", "details": f"{str(e)}"}),
             400,
         )
     mdm_response = send_to_mdm(validated_data)  # отправка запроса на mdm

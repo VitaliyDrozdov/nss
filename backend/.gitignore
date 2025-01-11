@@ -9,11 +9,16 @@
 .env
 
 .db
+
+# userfiles
 swagger_example.yml
 db_tables_archive.py
 quote_model_prod.json
 quote_model_prod_2.json
 dq_archive.py
+quotes.db
+tables.sql
+_schemas.sql
 
 data/
 .mypy_cache/

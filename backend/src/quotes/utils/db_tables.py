@@ -10,6 +10,7 @@ from quotes.models.core import (
     ProductsFeatures,
     Subjects,
 )
+from quotes.models.dq import Actions, CheckProductStatus, Checks
 
 data = {
     Subjects: [
@@ -123,6 +124,29 @@ data = {
                 "СТРАХОВАНИЕ ЖИЗНИ"
             ),
         },
+    ],
+    Actions: [
+        {"action_id": 1, "action_name": "delete"},
+        {"action_id": 2, "action_name": "enable"},
+        {"action_id": 3, "action_name": "disable"},
+    ],
+    Checks: [
+        {
+            "check_id": 1,
+            "type": "DQ1",
+            "check_name": "JSON schema check",
+        },
+        {
+            "check_id": 2,
+            "type": "DQ2",
+            "check_name": "DQ2 check",
+        },
+    ],
+    CheckProductStatus: [
+        {"product_code": "prod001", "check_id": 1, "condition": True},
+        {"product_code": "prod001", "check_id": 2, "condition": True},
+        {"product_code": "prod002", "check_id": 1, "condition": False},
+        {"product_code": "prod002", "check_id": 2, "condition": False},
     ],
 }
 

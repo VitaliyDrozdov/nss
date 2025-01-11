@@ -39,7 +39,7 @@ class Requests(db.Model):
 class RequestActions(db.Model):
     __tablename__ = "dq.request_actions"
 
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     FIO = db.Column(db.String(100), nullable=False)
     runId = db.Column(
         db.String(128), db.ForeignKey("dq.requests.runId"), nullable=False
@@ -56,12 +56,16 @@ class RequestActions(db.Model):
 class RequestResponse(db.Model):
     __tablename__ = "dq.request_response"
 
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
     runId = db.Column(
         db.String(128), db.ForeignKey("dq.requests.runId"), nullable=False
     )
     response_code = db.Column(
-        db.SmallInteger,
+        db.Integer,
         db.ForeignKey("dq.responses.response_code"),
         nullable=False,
     )
@@ -73,9 +77,9 @@ class RequestResponse(db.Model):
 class Responses(db.Model):
     __tablename__ = "dq.responses"
 
-    response_code = db.Column(db.SmallInteger, primary_key=True)
-    response_name = db.Column(db.String(50), nullable=False)
-    description_response = db.Column(db.Text, nullable=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    response_code = db.Column(db.SmallInteger)
+    description = db.Column(db.Text, nullable=True)
 
     request_responses = db.relationship(
         "RequestResponse", back_populates="response"
@@ -85,7 +89,7 @@ class Responses(db.Model):
 class CheckActions(db.Model):
     __tablename__ = "dq.scheck_actions"
 
-    id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     FIO = db.Column(db.String(100), nullable=False)
     product_code = db.Column(
         db.String(20),
@@ -108,7 +112,7 @@ class CheckActions(db.Model):
 class CheckProductStatus(db.Model):
     __tablename__ = "dq.check_product_status"
 
-    id = db.Column(db.SmallInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     product_code = db.Column(
         db.String(20),
         db.ForeignKey("fs.products.product_code"),
@@ -120,19 +124,24 @@ class CheckProductStatus(db.Model):
     condition = db.Column(db.Boolean, nullable=False)
 
     # product = db.relationship(
-    #     "Products", back_populates="check_product_statuses"
+    #     "Products", back_populates="check_product_status"
     # )
-    check = db.relationship("Checks", back_populates="check_product_statuses")
+    check = db.relationship("Checks", back_populates="check_product_status")
 
 
 class Checks(db.Model):
     __tablename__ = "dq.checks"
 
-    check_id = db.Column(db.SmallInteger, primary_key=True)
+    check_id = db.Column(db.SmallInteger, primary_key=True, autoincrement=True)
     type = db.Column(db.String(20), nullable=False)
     check_name = db.Column(db.String(100), nullable=False)
 
     check_actions = db.relationship("CheckActions", back_populates="check")
-    check_product_statuses = db.relationship(
+    check_product_status = db.relationship(
         "CheckProductStatus", back_populates="check"
+    )
+    __table_args__ = (
+        db.CheckConstraint(
+            "type IN ('DQ1', 'DQ2')", name="check_type_constraint"
+        ),
     )

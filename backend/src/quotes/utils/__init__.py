@@ -8,3 +8,4 @@ from quotes.utils.users import (
     apply_filters,
     admin_required,
 )
+from quotes.utils.db_tables import bulk_insert_core_data

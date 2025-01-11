@@ -1,22 +1,22 @@
 version: '3.9'
 
 volumes:
-  users_data:
+  nss_data:
 
 
 services:
-  users_db:
+  nss_db:
     image: postgres:14.0-alpine
     restart: always
     env_file: ./backend/.env
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: nss_users_user
-      POSTGRES_PASSWORD: nss_users_password
+      POSTGRES_USER: nss_user
+      POSTGRES_PASSWORD: nss_password
       POSTGRES_DB: nss_db
     volumes:
-      - users_data:/var/lib/postgresql/data
+      - nss_data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB" ]
       interval: 5s
@@ -31,7 +31,7 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      users_db:
+      nss_db:
         condition: service_healthy
       smtp-server:
         condition: service_healthy
