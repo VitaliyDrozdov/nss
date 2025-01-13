@@ -70,8 +70,8 @@ data = {
         },
     ],
     Products: [
-        {"product_code": "prod001", "type": "osago"},
-        {"product_code": "prod002", "type": "life"},
+        {"product_code": "prod001", "product_type": "osago"},
+        {"product_code": "prod002", "product_type": "life"},
     ],
     ProductsFeatures: [
         {"product_code": "prod001", "feature_name": "driver_region"},

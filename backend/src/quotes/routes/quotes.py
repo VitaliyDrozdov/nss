@@ -130,6 +130,7 @@ def predict(data, product_code=1, model_id=1):
         "predict": {
             "percent": f"{prediction * 100:.2f}%",
             "score": prediction,
+            "model_id": model_id,
         },
     }
 

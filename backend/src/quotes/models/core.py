@@ -27,7 +27,7 @@ class Products(db.Model):
     __tablename__ = "fs.products"
     # __table_args__ = {"schema": "fs"}
 
-    product_code = db.Column(db.String(20), primary_key=True)
+    product_code = db.Column(db.String, primary_key=True)
     product_type = db.Column(db.String(20))
 
 
@@ -73,11 +73,10 @@ class Models(db.Model):
 class Scores(db.Model):
     __tablename__ = "q.scores"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     model_id = db.Column(
         db.Integer, db.ForeignKey("ml.models.model_id"), nullable=False
     )
     predict = db.Column(db.Float(precision=16), nullable=False)
-    run_id = db.Column(db.String(128), nullable=False)
-    quote_id = db.Column(db.String(128), nullable=False)
+    run_id = db.Column(db.String(128), nullable=False, primary_key=True)
+    quote_id = db.Column(db.String(128), nullable=False, primary_key=True)
     model = db.relationship("Models", backref="scores")
