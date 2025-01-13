@@ -152,7 +152,7 @@ def handle_quote():
         if isinstance(dq1_response, tuple):
             dq1_data, dq1_status_code = dq1_response
             # если ошибка, то добавляем указание какая dq не прошла:
-            if dq1_status_code != 200:
+            if dq1_status_code != 200 and dq1_status_code != 403:
                 dq1_data = dq1_data.get_json()
                 dq1_data["type"] = "DQ1 failed"
                 return jsonify(dq1_data), dq1_status_code

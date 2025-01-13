@@ -140,8 +140,26 @@ class Checks(db.Model):
     check_product_status = db.relationship(
         "CheckProductStatus", back_populates="check"
     )
+    check_history = db.relationship("CheckHistory", back_populates="check")
     __table_args__ = (
         db.CheckConstraint(
             "type IN ('DQ1', 'DQ2')", name="check_type_constraint"
         ),
     )
+
+
+class CheckHistory(db.Model):
+    __tablename__ = "dq.check_history"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    runId = db.Column(db.String(128), nullable=False)
+    check_id = db.Column(
+        db.SmallInteger, db.ForeignKey("dq.checks.check_id"), nullable=False
+    )
+    product_type = db.Column(db.String(20), nullable=False)
+    status = db.Column(db.Boolean, nullable=False)
+    date = db.Column(
+        db.TIMESTAMP, default=db.func.current_timestamp(), nullable=False
+    )
+
+    check = db.relationship("Checks", back_populates="check_history")
