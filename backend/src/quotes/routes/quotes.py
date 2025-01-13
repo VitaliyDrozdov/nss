@@ -1,8 +1,6 @@
 import hashlib
 
 from flask import Blueprint, jsonify, request
-
-# from pydantic import ValidationError
 from sqlalchemy import text
 
 from quotes.config import db, logger

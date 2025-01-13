@@ -64,9 +64,9 @@ class RequestResponse(db.Model):
     runId = db.Column(
         db.String(128), db.ForeignKey("dq.requests.runId"), nullable=False
     )
-    response_code = db.Column(
+    response_id = db.Column(
         db.Integer,
-        db.ForeignKey("dq.responses.response_code"),
+        db.ForeignKey("dq.responses.id"),
         nullable=False,
     )
 

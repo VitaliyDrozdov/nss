@@ -28,7 +28,7 @@ class Products(db.Model):
     # __table_args__ = {"schema": "fs"}
 
     product_code = db.Column(db.String(20), primary_key=True)
-    type = db.Column(db.String)
+    product_type = db.Column(db.String(20))
 
 
 class ProductsFeatures(db.Model):
@@ -68,3 +68,16 @@ class Models(db.Model):
     model_description = db.Column(db.String(100))
 
     product = db.relationship("Products", backref="models")
+
+
+class Scores(db.Model):
+    __tablename__ = "q.scores"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    model_id = db.Column(
+        db.Integer, db.ForeignKey("ml.models.model_id"), nullable=False
+    )
+    predict = db.Column(db.Float(precision=16), nullable=False)
+    run_id = db.Column(db.String(128), nullable=False)
+    quote_id = db.Column(db.String(128), nullable=False)
+    model = db.relationship("Models", backref="scores")
