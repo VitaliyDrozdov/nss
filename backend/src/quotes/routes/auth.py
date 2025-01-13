@@ -353,9 +353,9 @@ def create_role(user):
 
 
 @bp.route("/admin/endpoints", methods=["GET"])
-# @token_required
-# @admin_required
-def get_endpoints():
+@token_required
+@admin_required
+def get_endpoints(user):
     """Список всех эндпоинтовю."""
     endpoints = []
     for rule in current_app.url_map.iter_rules():

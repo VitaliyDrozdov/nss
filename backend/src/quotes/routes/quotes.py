@@ -136,7 +136,8 @@ def predict(data, product_code=1, model_id=1):
 
 
 @bp.route("/quote", methods=["POST"])
-def handle_quote():
+# @token_required
+def handle_quote(user):
     """
     Принимает на вход json, отправляет запросы на MDM, Feature
     Proxy.

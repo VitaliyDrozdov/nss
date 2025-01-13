@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from quotes.config import db
 from quotes.models.core import Products
 from quotes.models.dq import CheckHistory, CheckProductStatus, Checks, Requests
-from quotes.utils import validate_input_data
+from quotes.utils import admin_required, token_required, validate_input_data
 
 bp = Blueprint("dq", __name__)
 
@@ -166,6 +166,7 @@ def dq2(data=None):
             ),
             400,
         )
+    log_request(data=data, product_code=product_code, runId=runId)
     check, check_status = validate_check_type(
         check_type="DQ2", product_code=product_code
     )
@@ -181,7 +182,7 @@ def dq2(data=None):
             log_check_history(
                 check_id=check.check_id,
                 product_type=product_type,
-                status=True,
+                status=False,
                 runId=runId,
             )
             return (
@@ -211,7 +212,7 @@ def dq2(data=None):
         log_check_history(
             check_id=check.check_id,
             product_type=product_type,
-            status=True,
+            status=False,
             runId=runId,
         )
         return (
@@ -233,11 +234,10 @@ def dq2(data=None):
         .product_type
     )
     if product_type_for_code != product_type:
-        log_request(data=data, product_code=product_code, runId=runId)
         log_check_history(
             check_id=check.check_id,
             product_type=product_type,
-            status=True,
+            status=False,
             runId=runId,
         )
         return (
@@ -269,18 +269,16 @@ def dq2(data=None):
 
     age = calculate_age(birth_date)
     if age < 18:
-        log_request(data=data, product_code=product_code, runId=runId)
         log_check_history(
             check_id=check.check_id,
             product_type=product_type,
-            status=True,
+            status=False,
             runId=runId,
         )
         return jsonify({"error": "Клиент не достиг совершеннолетия"}), 400
 
     # 2.2 Проверка возраста субъекта (максимум 90 лет)
     if age > 90:
-        log_request(data=data, product_code=product_code, runId=runId)
         log_check_history(
             check_id=check.check_id,
             product_type=product_type,
@@ -295,12 +293,154 @@ def dq2(data=None):
     # 2.3 Проверка корректности пола субъекта
     gender = data.get("quote", {}).get("subjects", {})[0].get("gender", None)
     if gender not in ["male", "female"]:
-        log_request(data=data, product_code=product_code, runId=runId)
         log_check_history(
             check_id=check.check_id,
             product_type=product_type,
-            status=True,
+            status=False,
             runId=runId,
         )
         return jsonify({"error": "Выберите пол: female/male"}), 400
+    log_check_history(
+        check_id=check.check_id,
+        product_type=product_type,
+        status=True,
+        runId=runId,
+    )
     return jsonify({"message": "Проверка DQ2 пройдена успешно."}), 200
+
+
+@bp.route("/", methods=["GET"])
+@token_required
+# @admin_required
+def get_check_history(user):
+    """
+    Эндпоинт для получения списка всех проверок с возможностью фильтрации.
+    """
+    try:
+        check_type = request.args.get("check_type")
+        product_type = request.args.get("product_type")
+        date = request.args.get("date")
+
+        query = db.session.query(CheckHistory)
+        if check_type:
+            query = query.join(Checks).filter(Checks.type == check_type)
+        if product_type:
+            query = query.filter(CheckHistory.product_type == product_type)
+        if date:
+            try:
+                date_obj = datetime.strptime(date, "%Y-%m-%d").date()
+                query = query.filter(
+                    CheckHistory.date.cast(db.Date) == date_obj
+                )
+            except ValueError:
+                return (
+                    jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}),
+                    400,
+                )
+        results = query.all()
+
+        response = [
+            {
+                "id": record.id,
+                "runId": record.runId,
+                "check_id": record.check_id,
+                "product_type": record.product_type,
+                "status": record.status,
+                "date": record.date.isoformat(),
+            }
+            for record in results
+        ]
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/<int:check_id>", methods=["GET", "DELETE", "PATCH"])
+@token_required
+@admin_required
+def handle_check_dq(user, check_id):
+    """
+    Эндпоинт для получения, удаления записи из истории проверок
+    или изменения статуса проверки.
+    """
+    check_id = request.json.get("check_id")
+    check_exists = (
+        db.session.query(CheckHistory).filter_by(id=check_id).first()
+    )
+    if not check_exists:
+        return (
+            jsonify({"error": f"Check with id {check_id} not found ."}),
+            404,
+        )
+    if request.method == "GET":
+        try:
+            record = (
+                db.session.query(CheckHistory).filter_by(id=check_id).first()
+            )
+            if not record:
+                return (
+                    jsonify({"error": f"Запись с id {check_id} не найдена"}),
+                    404,
+                )
+
+            request_record = (
+                db.session.query(Requests)
+                .filter_by(runId=record.runId)
+                .first()
+            )
+            if not request_record:
+                return (
+                    jsonify(
+                        {"error": f"Запись с runId {record.runId} не найдена."}
+                    ),
+                    404,
+                )
+
+            response = {
+                "id": record.id,
+                "runId": record.runId,
+                "check_id": record.check_id,
+                "product_type": record.product_type,
+                "status": record.status,
+                "date": record.date.isoformat(),
+                "request_json": request_record.request,
+            }
+            return jsonify(response), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    elif request.method == "DELETE":
+        try:
+
+            db.session.delete(check_exists)
+            db.session.commit()
+
+            return (
+                jsonify({"message": f"Запись с id {check_id} удалена."}),
+                204,
+            )
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+    elif request.method == "PATCH":
+        try:
+
+            status = request.json.get("status")
+            if not check_id or status is None:
+                return jsonify({"error": "Missing required fields."}), 400
+
+            check_exists.status = status
+            db.session.commit()
+            return (
+                jsonify(
+                    {"message": "Check product status updated successfully"}
+                ),
+                200,
+            )
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500

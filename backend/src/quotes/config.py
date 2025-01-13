@@ -41,6 +41,8 @@ class Config:
     MAIL_SUPPRESS_SEND = True
     MAIL_DEFAULT_SENDER = "no-reply@localhost"
 
+    SQL_FILENAME = os.getenv("SQL_FILENAME")
+
 
 logging.basicConfig(
     level=logging.DEBUG,

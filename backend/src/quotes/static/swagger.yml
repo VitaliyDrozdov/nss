@@ -700,6 +700,718 @@ paths:
         '400':
           description: Role name is required or role already exists.
 
+  /api/dq:
+    get:
+      summary: Получение списка всех проверок
+      description: Возвращает список проверок с возможностью фильтрации по типу проверки, продукту и дате.
+      tags:
+        - DataQuality
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: check_type
+          in: query
+          description: Тип проверки для фильтрации.
+          required: false
+          schema:
+            type: string
+        - name: product_type
+          in: query
+          description: Тип продукта для фильтрации.
+          required: false
+          schema:
+            type: string
+        - name: date
+          in: query
+          description: Дата для фильтрации (формат YYYY-MM-DD).
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Успешный ответ с данными проверок.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    runId:
+                      type: string
+                    check_id:
+                      type: integer
+                    product_type:
+                      type: string
+                    status:
+                      type: boolean
+                    date:
+                      type: string
+                      format: date-time
+        '400':
+          description: Неверный формат даты.
+        '500':
+          description: Ошибка сервера.
+  /api/dq/{check_id}:
+    get:
+      summary: Получение записи из истории проверок
+      description: Возвращает запись проверки с указанным `check_id`, включая связанные данные запроса.
+      tags:
+        - DataQuality
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: check_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешный ответ с данными записи.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  runId:
+                    type: string
+                  check_id:
+                    type: integer
+                  product_type:
+                    type: string
+                  status:
+                    type: boolean
+                  date:
+                    type: string
+                    format: date-time
+                  request_json:
+                    type: object
+        '403':
+          description: Доступно только админу.
+        '404':
+          description: Запись или связанный запрос не найдены.
+        '500':
+          description: Ошибка сервера.
+    delete:
+      summary: Удаление записи из истории проверок
+      description: Удаляет запись из истории проверок с указанным `check_id`.
+      tags:
+        - DataQuality
+      parameters:
+        - name: check_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Успешное удаление записи.
+        '403':
+          description: Доступно только админу.
+        '404':
+          description: Запись не найдена.
+        '500':
+          description: Ошибка сервера.
+      security:
+        - BearerAuth: []
+    patch:
+      summary: Изменение статуса проверки
+      description: Изменяет статус проверки с указанным `check_id`.
+      tags:
+        - DataQuality
+      security:
+        - BearerAuth: []
+
+      parameters:
+        - name: check_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Новый статус проверки.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: boolean
+      responses:
+        '200':
+          description: Успешное обновление статуса.
+        '400':
+          description: Отсутствуют обязательные поля.
+        '404':
+          description: Запись не найдена.
+        '403':
+          description: Доступно только админу.
+        '500':
+          description: Ошибка сервера.
+
+  /api/dwh:
+    get:
+      summary: Retrieve data from DWH.
+      description: |
+        Fetch records from the `dwh.data_mart` table with optional filters and pagination.
+      tags:
+        - DWH
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: product_type
+          in: query
+          description: Filter by product type.
+          schema:
+            type: string
+        - name: model_name
+          in: query
+          description: Filter by model name.
+          schema:
+            type: string
+        - name: is_insurance_case
+          in: query
+          description: Filter by whether it is an insurance case.
+          schema:
+            type: boolean
+        - name: feature_name
+          in: query
+          description: Filter by feature name.
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          description: Filter by start date (YYYY-MM-DD).
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: Filter by end date (YYYY-MM-DD).
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          description: Page number for pagination.
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of records per page.
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Successful response with paginated data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                    description: Current page number.
+                  total_pages:
+                    type: integer
+                    description: Total number of pages.
+                  total_records:
+                    type: integer
+                    description: Total number of records.
+                  per_page:
+                    type: integer
+                    description: Number of records per page.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product_type:
+                          type: string
+                        run_id:
+                          type: integer
+                        quote_id:
+                          type: integer
+                        briefcase_date:
+                          type: string
+                          format: date
+                        start_date:
+                          type: string
+                          format: date
+                        end_date:
+                          type: string
+                          format: date
+                        model_name:
+                          type: string
+                        feature_name:
+                          type: string
+                        feature_value:
+                          type: string
+                        predict:
+                          type: number
+                          format: float
+                        is_insurance_case:
+                          type: boolean
+                        data_insurance_case:
+                          type: string
+        '400':
+          description: Bad request due to invalid input.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    post:
+      summary: Retrieve data from DWH with filters in request body.
+      description: |
+        Fetch records from the `dwh.data_mart` table by providing filters in the request body.
+      tags:
+        - DWH
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_type:
+                  type: string
+                model_name:
+                  type: string
+                is_insurance_case:
+                  type: boolean
+                feature_name:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Successful response with paginated data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                    description: Current page number.
+                  total_pages:
+                    type: integer
+                    description: Total number of pages.
+                  total_records:
+                    type: integer
+                    description: Total number of records.
+                  per_page:
+                    type: integer
+                    description: Number of records per page.
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product_type:
+                          type: string
+                        run_id:
+                          type: integer
+                        quote_id:
+                          type: integer
+                        briefcase_date:
+                          type: string
+                          format: date
+                        start_date:
+                          type: string
+                          format: date
+                        end_date:
+                          type: string
+                          format: date
+                        model_name:
+                          type: string
+                        feature_name:
+                          type: string
+                        feature_value:
+                          type: string
+                        predict:
+                          type: number
+                          format: float
+                        is_insurance_case:
+                          type: boolean
+                        data_insurance_case:
+                          type: string
+        '400':
+          description: Bad request due to invalid input.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /api/observability:
+    get:
+      tags:
+        - Observability
+      security:
+        - BearerAuth: []
+      summary: Get a list of incidents
+      description: Retrieve incidents with optional filters and pagination.
+      parameters:
+        - name: state
+          in: query
+          description: Filter by incident state (e.g., Active, In Progress, Resolved).
+          required: false
+          schema:
+            type: string
+        - name: priority
+          in: query
+          description: Filter by priority (e.g., High, Medium, Low).
+          required: false
+          schema:
+            type: string
+        - name: service
+          in: query
+          description: Filter by service name.
+          required: false
+          schema:
+            type: string
+        - name: trace_id
+          in: query
+          description: Filter by trace ID.
+          required: false
+          schema:
+            type: integer
+        - name: last_updated
+          in: query
+          description: Filter by incidents updated after this timestamp (ISO 8601 format).
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          description: Page number for pagination.
+          required: false
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          description: Number of records per page.
+          required: false
+          schema:
+            type: integer
+      responses:
+        200:
+          description: A list of incidents with pagination details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  total_pages:
+                    type: integer
+                  total_records:
+                    type: integer
+                  per_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id_incident:
+                          type: integer
+                        state:
+                          type: string
+                        priority:
+                          type: string
+                        description:
+                          type: string
+                          nullable: true
+                        last_updated:
+                          type: string
+                          format: date-time
+                        service:
+                          type: string
+                        trace_id:
+                          type: integer
+        400:
+          description: Invalid request parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+    post:
+      tags:
+        - Observability
+      security:
+        - BearerAuth: []
+      summary: Filter incidents
+      description: Apply filters to retrieve incidents.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  nullable: true
+                priority:
+                  type: string
+                  nullable: true
+                service:
+                  type: string
+                  nullable: true
+                trace_id:
+                  type: integer
+                  nullable: true
+                last_updated:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        200:
+          description: A list of incidents matching the filters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  total_pages:
+                    type: integer
+                  total_records:
+                    type: integer
+                  per_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id_incident:
+                          type: integer
+                        state:
+                          type: string
+                        priority:
+                          type: string
+                        description:
+                          type: string
+                          nullable: true
+                        last_updated:
+                          type: string
+                          format: date-time
+                        service:
+                          type: string
+                        trace_id:
+                          type: integer
+        400:
+          description: Invalid request parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /api/observability/create:
+    post:
+      tags:
+        - Observability
+      security:
+        - BearerAuth: []
+      summary: Create a new incident
+      description: Add a new incident to the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - state
+                - priority
+                - service
+                - trace_id
+              properties:
+                state:
+                  type: string
+                priority:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                service:
+                  type: string
+                trace_id:
+                  type: integer
+      responses:
+        201:
+          description: Incident successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  incident:
+                    type: integer
+        400:
+          description: Invalid input data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  /api/observability/{id_incident}:
+    put:
+      tags:
+        - Observability
+      security:
+        - BearerAuth: []
+      summary: Update an existing incident
+      description: Modify the details of an existing incident by its ID.
+      parameters:
+        - name: id_incident
+          in: path
+          required: true
+          description: The ID of the incident to update.
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - state
+                - priority
+                - service
+                - trace_id
+              properties:
+                state:
+                  type: string
+                priority:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                service:
+                  type: string
+                trace_id:
+                  type: integer
+      responses:
+        200:
+          description: Incident successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  incident:
+                    type: integer
+        400:
+          description: Invalid input data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        404:
+          description: Incident not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
 components:
   securitySchemes:
     BearerAuth:

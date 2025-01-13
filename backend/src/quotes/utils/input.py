@@ -1,6 +1,7 @@
 from functools import wraps
 
 from flask import jsonify, request
+
 from quotes.models.auth import User
 from quotes.models.quotes import QuoteData
 
@@ -35,6 +36,7 @@ def token_required(f):
         user = User.query.filter_by(token=token).first()
         if not user or not user.check_token(token):
             return jsonify({"error": "Invalid or expired token"}), 401
+        print(f"User found: {user.email}")
         return f(user, *args, **kwargs)
 
     return decorated_f
