@@ -1,44 +1,33 @@
-import React, { useContext } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import React from "react";
 
-import { Box, Button, IconButton, TextField, useTheme } from "@mui/material";
-import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
-import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
+import { Box, Button, TextField } from "@mui/material";
+
 
 import { Formik } from "formik";
 import * as yup from "yup";
 
-import { ColorModeContext } from "../../hooks/useTheme";
+import api from "../../utils/api";
 
 const SignUpForm = () => {
-  const theme = useTheme();
-  const colorMode = useContext(ColorModeContext);
-  const navigate = useNavigate();
-  const handleFormSubmit = (values) => {
-      const address = 'http://localhost:5000/api/auth/register';
-      const params = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(values)
-      }
   
-      fetch(address, params)
-        .then(response => {
-            if (response.status === 201) {
-                navigate("/signin");
-            }
-            else if (response.status === 500) {
-              throw new Error("Сервер недоступен");
-            }
-          console.log("start parsing data")
-          return response.json()
-        })
-        .catch(error => {
-          console.log(error.message)
-        });
-    };
+  const handleFormSubmit = async (values) => {
+
+    try {
+      const response = await api.post("/auth/register", values);
+
+      if (response.status === 201) {
+        console.log("Регистрация прошла успешно");
+      } else {
+        console.log("Неожиданный статус ответа:", response.status);
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 500) {
+        console.error("Сервер недоступен");
+      } else {
+        console.error("Произошла ошибка:", error.message);
+      }
+    }
+  };
 
   return (
     <Formik
@@ -90,28 +79,16 @@ const SignUpForm = () => {
               fullWidth
               variant="filled"
               type="text"
-              label="Username"
+              label="email"
               onBlur={handleBlur}
               onChange={handleChange}
-              value={values.username}
-              name="username"
-              error={!!touched.username && !!errors.username}
-              helperText={touched.username && errors.username}
+              value={values.email}
+              name="email"
+              error={!!touched.email && !!errors.email}
+              helperText={touched.email && errors.email}
               sx={{ gridColumn: "span 4" }}
             />
-            <TextField
-              fullWidth
-              variant="filled"
-              type="text"
-              label="Номер телефона"
-              onBlur={handleBlur}
-              onChange={handleChange}
-              //value={values.contact}
-              name="contact"
-              error={!!touched.contact && !!errors.contact}
-              helperText={touched.contact && errors.contact}
-              sx={{ gridColumn: "span 4" }}
-            />
+
             <TextField
               fullWidth
               variant="filled"
@@ -125,20 +102,11 @@ const SignUpForm = () => {
               helperText={touched.password && errors.password}
               sx={{ gridColumn: "span 4" }}
             />
-            
+
           </Box>
           <Box display="flex" justifyContent="space-between" mt={2}>
-            <IconButton onClick={colorMode.toggleColorMode}>
-              {theme.palette.mode === "dark" ? (
-                <DarkModeOutlinedIcon />
-              ) : (
-                <LightModeOutlinedIcon />
-              )}
-            </IconButton>
+
             <Box>
-              <Button component={Link} to="/signin" color="warning" variant="contained" sx={{mr: 2}}>
-                Войти
-              </Button>
               <Button type="submit" color="secondary" variant="contained">
                 Создать
               </Button>
@@ -154,16 +122,16 @@ const phoneRegExp =
   /^((\+[1-9]{1,4}[ -]?)|(\([0-9]{2,3}\)[ -]?)|([0-9]{2,4})[ -]?)*?[0-9]{3,4}[ -]?[0-9]{3,4}$/;
 
 const checkoutSchema = yup.object().shape({
-  firstName:  yup.string(),
-  lastName:   yup.string(),
-  username:      yup.string().required("обязательное!"),
+  firstName: yup.string(),
+  lastName: yup.string(),
+  email: yup.string().required("обязательное!"),
   contact: yup
     .string()
     .matches(phoneRegExp, "Phone number is not valid"),
 });
 
 const initialValues = {
-  username: "",
+  email: "",
   password: "",
 };
 

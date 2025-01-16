@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProSidebar, Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import { tokens } from "../hooks/useTheme";
+import api from "../utils/api";
+import { useNavigate } from "react-router-dom";
 
 import StorageOutlinedIcon from '@mui/icons-material/StorageOutlined';
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
@@ -53,11 +55,32 @@ const CustomTitle = ({ children }) => {
   );
 };
 
+
+
+
 const Sidebar = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("/quoteOsago");
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("/auth/profile");
+        console.log(response.data);
+        setEmail(response.data.email);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchProfile();
+  },);
+
+
 
   return (
     <Box
@@ -129,7 +152,8 @@ const Sidebar = () => {
                   fontWeight="bold"
                   sx={{ m: "10px 0 0 0" }}
                 >
-                  Имя Фамилия
+                  {email}
+
                 </Typography>
               </Box>
             </Box>
@@ -137,13 +161,13 @@ const Sidebar = () => {
 
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
 
-              <Item
-                title="Получить скоринг"
-                to="/quoteOsago"
-                icon={<AssuredWorkloadOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+            <Item
+              title="Получить скоринг"
+              to="/quoteOsago"
+              icon={<AssuredWorkloadOutlinedIcon />}
+              selected={selected}
+              setSelected={setSelected}
+            />
 
             <SubMenu
               icon={<HealthAndSafetyOutlinedIcon />}
@@ -252,7 +276,7 @@ const Sidebar = () => {
                 setSelected={setSelected}
               />
 
-              </SubMenu>
+            </SubMenu>
 
             <Item
               title="Каталог моделей"

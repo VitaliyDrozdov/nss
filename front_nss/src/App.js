@@ -11,6 +11,7 @@ import QualityControl from "./pages/Quality/QualityControl";
 import ModelMonitoring from "./pages/ModelMonitoring/ModelMonitoring";
 import ModelCatalog from "./pages/ModelCatalog/ModelCatalog";
 import DataMart from "./pages/DWH/DataMart";
+import IncidentList from "./pages/Observability/IncidentList";
 
 import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
@@ -25,7 +26,10 @@ function App() {
     "/qualityControl", 
     "/modelMonitoring",
     "/modelCatalog",
-    "/dataMart"
+    "/dataMart",
+    "/manageRoles",
+    "/manageUsers",
+    "/incidentList"
 
   ];
   const showTopbarOn = [
@@ -34,7 +38,10 @@ function App() {
     "/qualityControl",
     "/modelMonitoring",
     "/modelCatalog",
-    "/dataMart"
+    "/dataMart",
+    "/manageRoles",
+    "/manageUsers",
+    "/incidentList"
   ];
 
   return (
@@ -49,7 +56,7 @@ function App() {
               {/* unprotected routes */}
 
               <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
+              <Route path="/manageUsers" element={<SignUp />} />
 
               {/* protected routes */}
               <Route element={<ProtectedRoutes />}>
@@ -65,6 +72,7 @@ function App() {
               <Route path="/modelCatalog" element={<ModelCatalog />} />
 
               <Route path="/dataMart" element={<DataMart />} />
+              <Route path="/incidentList" element={<IncidentList />} />
                
               </Route>
             </Routes>

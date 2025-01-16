@@ -1,13 +1,31 @@
-import * as React from "react";
+import React, { useEffect } from "react";
 import Avatar from "@mui/material/Avatar";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-import Copyright from "../../components/Copyright";
 import SignUpForm from "./SignUpForm";
 
+import { useAuth } from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
+
+
 const SignUp = () => {
+
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/signin");
+    }
+  }, [isLoggedIn, navigate]);
+
+  if (!isLoggedIn) {
+    return null;
+  }
+
   return (
     <Box
       display="flex"
@@ -19,7 +37,7 @@ const SignUp = () => {
         <CssBaseline />
         <Box
           sx={{
-            marginTop: 8,
+            marginTop: 2,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -31,11 +49,10 @@ const SignUp = () => {
           <Typography component="h1" variant="h5" mb={3}>
             Создание аккаунта
           </Typography>
-          
+
           <SignUpForm />
 
         </Box>
-        <Copyright sx={{ mt: 8, mb: 4 }} />
       </Box>
     </Box>
   );
