@@ -33,3 +33,18 @@ body,
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+
+a {
+  color: #FFA62B;
+  text-decoration: none;
+  font-family: 'Source Code Pro', sans-serif;
+  font-size: medium;
+}
+
+a:hover {
+  color: #3bbbaa;
+  text-decoration: underline;
+}
+
+

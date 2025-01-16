@@ -29,7 +29,7 @@ const SignIn = () => {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5" mb={3}>
-            Вход
+            Авторизация
           </Typography>
           
           <SignInForm />

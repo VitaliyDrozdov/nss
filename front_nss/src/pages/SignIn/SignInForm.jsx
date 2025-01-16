@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { Box, Button, IconButton, TextField, useTheme } from "@mui/material";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
@@ -31,7 +31,7 @@ const SignInForm = () => {
       .then(response => {
           if (response.status === 200) {
               login();
-              navigate("/test");
+              navigate("/quoteOsago");
           }
           else if (response.status === 500) {
             throw new Error("Сервер недоступен");
@@ -45,6 +45,7 @@ const SignInForm = () => {
   };
 
   return (
+    <>
     <Formik
       onSubmit={handleFormSubmit}
       initialValues={initialValues}
@@ -69,7 +70,7 @@ const SignInForm = () => {
               fullWidth
               variant="filled"
               type="text"
-              label="username"
+              label="Введите email"
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.username}
@@ -81,7 +82,7 @@ const SignInForm = () => {
               fullWidth
               variant="filled"
               type="text"
-              label="Пароль"
+              label="Введите пароль"
               onBlur={handleBlur}
               onChange={handleChange}
               value={values.contact}
@@ -99,9 +100,7 @@ const SignInForm = () => {
               )}
             </IconButton>
             <Box>
-              <Button component={Link} to="/signup" color="warning" variant="contained" sx={{mr: 2}}>
-                Регистрация
-              </Button>
+              
               <Button type="submit" color="secondary" variant="contained">
                 Войти
               </Button>
@@ -110,6 +109,12 @@ const SignInForm = () => {
         </form>
       )}
     </Formik>
+
+    <Box>
+      <a href="/signup">Восстановить пароль</a>
+    </Box>
+
+    </>
   );
 };
 

@@ -1,17 +1,17 @@
-import TestForm from "./TestForm";
+import QuoteOsagoForm from "./QuoteOsagoForm";
 
 import { Box } from "@mui/material";
 import Header from "../../components/Header";
 
-const Test = ()  => {
+const QuoteOsago = ()  => {
 
   return (
-    <Box m="20px">
+    <Box >
       <Header title="Отправить котировку" subtitle="Заполните представленную форму" />
-      <TestForm />
+      <QuoteOsagoForm />
     </Box>
   );
 };
 
-export default Test;
+export default QuoteOsago;
 
