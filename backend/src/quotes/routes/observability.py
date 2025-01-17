@@ -106,7 +106,7 @@ def get_incidents(user):
 
 @bp.route("/create", methods=["POST"])
 @token_required
-def create_incident():
+def create_incident(user):
     VALID_STATES = ["Active", "In Progress", "Resolved"]
     VALID_PRIORITIES = ["High", "Medium", "Low"]
     data = request.json
@@ -115,9 +115,16 @@ def create_incident():
             not data.get("state")
             or not data.get("priority")
             or not data.get("service")
-            or not data.get("trace_id")
         ):
-            return jsonify({"error": "Missing required fields"}), 400
+            return (
+                jsonify(
+                    {
+                        "error": "Missing required fields",
+                        "detail": "required: state, priority, service.",
+                    }
+                ),
+                400,
+            )
         if data.get("state") not in VALID_STATES:
             return (
                 jsonify(
@@ -136,6 +143,7 @@ def create_incident():
                 ),
                 400,
             )
+
         insert_query = """
         INSERT INTO observability.incidents (state, priority, description, last_updated, service, trace_id)
         VALUES (:state, :priority, :description, :last_updated, :service, :trace_id)
@@ -147,7 +155,7 @@ def create_incident():
             "description": data.get("description", None),
             "last_updated": datetime.utcnow(),
             "service": data["service"],
-            "trace_id": data["trace_id"],
+            "trace_id": data.get("trace_id", 1009),
         }
 
         result = db.session.execute(text(insert_query), params)
@@ -156,7 +164,7 @@ def create_incident():
         new_incident_id = result.fetchone()[0]
         return (
             jsonify(
-                {"message": "Incident created", "incident": new_incident_id}
+                {"message": "Incident created", "incident_id": new_incident_id}
             ),
             201,
         )
@@ -169,7 +177,7 @@ def create_incident():
 
 @bp.route("/<int:id_incident>", methods=["PUT"])
 @token_required
-def update_incident(id_incident):
+def update_incident(user, id_incident):
     VALID_STATES = ["Active", "In Progress", "Resolved"]
     VALID_PRIORITIES = ["High", "Medium", "Low"]
     data = request.json
