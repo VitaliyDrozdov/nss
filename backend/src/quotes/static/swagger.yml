@@ -1411,7 +1411,250 @@ paths:
                 properties:
                   error:
                     type: string
+  /api/monitoring:
+    get:
+      tags:
+        - Monitoring
+      security:
+        - BearerAuth: []
+      summary: Получение логов отчетности
+      description: Получает логи отчетности модели с возможностью фильтрации и пагинации
+      operationId: getReportLogs
+      parameters:
+        - in: query
+          name: model_name
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: metric_name
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: monitoring_type
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: calculation_date
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Успешный ответ с данными
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  total_pages:
+                    type: integer
+                  total_records:
+                    type: integer
+                  per_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        model_name:
+                          type: string
+                        metric_name:
+                          type: string
+                        monitoring_type:
+                          type: string
+                        calculation_date:
+                          type: string
+                          format: date-time
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type: string
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
+    post:
+      tags:
+        - Monitoring
+      security:
+        - BearerAuth: []
+      summary: Получение логов отчетности с фильтрами
+      description: Получает логи отчетности с фильтрацией по предоставленным данным
+      operationId: postReportLogs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model_name:
+                  type: string
+                metric_name:
+                  type: string
+                monitoring_type:
+                  type: string
+                calculation_date:
+                  type: string
+                  format: date-time
+                page:
+                  type: integer
+                  default: 1
+                per_page:
+                  type: integer
+                  default: 10
+      responses:
+        '200':
+          description: Успешный ответ с данными
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  total_pages:
+                    type: integer
+                  total_records:
+                    type: integer
+                  per_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        model_name:
+                          type: string
+                        metric_name:
+                          type: string
+                        monitoring_type:
+                          type: string
+                        calculation_date:
+                          type: string
+                          format: date-time
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type: string
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/monitoring/create:
+    post:
+      tags:
+        - Monitoring
+      security:
+        - BearerAuth: []
+      summary: Создание нового лога отчетности
+      description: Создает новый лог отчетности для заданной модели и метрики
+      operationId: createReportLog
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model_name
+                - metric_name
+                - monitoring_type
+              properties:
+                model_name:
+                  type: string
+                  enum:
+                    - osago
+                    - life_insurance
+                metric_name:
+                  type: string
+                monitoring_type:
+                  type: string
+                  enum:
+                    - On-demand
+                    - Scheduled
+                calculation_date:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Лог отчетности успешно создан
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  id:
+                    type: integer
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  detail:
+                    type: string
+        '500':
+          description: Ошибка на сервере
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 components:
   securitySchemes:
     BearerAuth:
