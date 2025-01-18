@@ -24,18 +24,17 @@ import api from "../../utils/api";
 
 const DataMart = () => {
   const [filters, setFilters] = useState({
-    product: "", // Показывает все продукты, если пустой
-    model: "", // Показывает все модели, если пустой
-    insuranceCase: "", // Показывает все страховые случаи, если пустой
-    features: [], // Показывает все фичи, если пустой
+    product: "",
+    model: "",
+    insuranceCase: "",
+    features: [],
   });
 
-  const [data, setData] = useState([]); // Данные для таблицы
-  const [page, setPage] = useState(0); // Текущая страница
-  const [rowsPerPage, setRowsPerPage] = useState(10); // Количество строк на странице
-  const [startDate, setStartDate] = useState(null); // Дата начала
-  const [endDate, setEndDate] = useState(null); // Дата окончания
-  const [loading, setLoading] = useState(false); // Индикатор загрузки
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -50,31 +49,44 @@ const DataMart = () => {
     setPage(0);
   };
 
+  const transformData = (apiData) =>
+    apiData.map((item) => ({
+      "Продукт": item.product_type,
+      "ID запроса": item.run_id,
+      "ID котировки": item.quote_id,
+      "Дата открытия": item.start_date,
+      "Дата закрытия": item.end_date,
+      "Модель": item.model_name,
+      "Название фичи": item.feature_name,
+      "Значение фичи": item.feature_value,
+      "Скор балл": item.predict,
+      "Страховой случай": item.is_insurance_case ? "Возник" : "Не возник",
+    }));
+  
+
   const fetchData = async () => {
-    setLoading(true);
     try {
-      const response = await api.post("/dwh/", {
-        "product_type": "string",
-        "model_name": "string",
-        "is_insurance_case": true,
-        "feature_name": "string",
-        "start_date": "2025-01-16",
-        "end_date": "2025-01-16"
-      });
-      setData(response.data);
+      const params = new URLSearchParams();
+
+      if (filters.product) params.append("product", filters.product);
+      if (filters.model) params.append("model", filters.model);
+      if (filters.insuranceCase) params.append("insurance_case", filters.insuranceCase);
+      if (filters.features.length > 0) params.append("features", filters.features.join(","));
+      if (startDate) params.append("start_date", startDate.toISOString().split("T")[0]);
+      if (endDate) params.append("end_date", endDate.toISOString().split("T")[0]);
+      params.append("page", page + 1);
+      params.append("per_page", rowsPerPage);
+      const response = await api.get(`/dwh/?${params.toString()}`);
+
+      const rows=transformData(response.data.data);
+      
+      setData(rows);
+      console.log(data);
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Запрос данных при монтировании страницы
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Обновление данных при изменении фильтров, даты, страницы или количества строк
   useEffect(() => {
     fetchData();
   }, [filters, startDate, endDate, page, rowsPerPage]);
@@ -82,7 +94,7 @@ const DataMart = () => {
   const columns = [
     "Продукт",
     "ID запроса",
-    "ID категории",
+    "ID котировки",
     "Дата открытия",
     "Дата закрытия",
     "Модель",
@@ -136,8 +148,8 @@ const DataMart = () => {
                 }
               >
                 <MenuItem value="">Все страховые случаи</MenuItem>
-                <MenuItem value="Возник">Возник</MenuItem>
-                <MenuItem value="Не возник">Не возник</MenuItem>
+                <MenuItem value="true">Возник</MenuItem>
+                <MenuItem value="false">Не возник</MenuItem>
               </Select>
             </FormControl>
           </Grid>
