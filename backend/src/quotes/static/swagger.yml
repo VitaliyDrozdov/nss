@@ -1250,6 +1250,12 @@ paths:
       parameters:
         - name: state
           in: query
+          description: Filter by id_incident.
+          required: false
+          schema:
+            type: integer
+        - name: state
+          in: query
           description: Filter by incident state (e.g., Active, In Progress, Resolved).
           required: false
           schema:
@@ -1360,6 +1366,9 @@ paths:
             schema:
               type: object
               properties:
+                id_incident:
+                  type: integer
+                  nullable: true
                 state:
                   type: string
                   nullable: true

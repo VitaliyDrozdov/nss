@@ -39,6 +39,10 @@ def get_incidents(user):
         base_query += " AND priority = :priority"
         count_query += " AND priority = :priority"
         filters["priority"] = incoming_filters["priority"]
+    if "id_incident" in incoming_filters:
+        base_query += " AND id_incident = :id_incident"
+        count_query += " AND id_incident = :id_incident"
+        filters["id_incident"] = incoming_filters["id_incident"]
     if "service" in incoming_filters:
         base_query += " AND service = :service"
         count_query += " AND service = :service"
