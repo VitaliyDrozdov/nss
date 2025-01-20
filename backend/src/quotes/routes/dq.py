@@ -518,14 +518,18 @@ def handle_check_dq(user, check_id):
 
 
 @bp.route("/manage", methods=["PUT"])
+@token_required
+@admin_required
 def manage_checks():
     data = request.json
     check_type = data.get("check_type")
     product_type = data.get("product_type")
     condition = data.get("condition")
-    if product_type not in {"osgo", "life"}:
+    if product_type not in {"osago", "life"}:
         return (
-            jsonify({"error": 'check must be in \'{"osago", "life"}\' '}),
+            jsonify(
+                {"error": 'product_type must be in \'{"osago", "life"}\' '}
+            ),
             400,
         )
     if check_type not in {"DQ1", "DQ2.1", "DQ2.2", "DQ2.3"}:
