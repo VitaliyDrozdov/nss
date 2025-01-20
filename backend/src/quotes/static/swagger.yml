@@ -1813,6 +1813,255 @@ paths:
                 properties:
                   error:
                     type: string
+
+
+  /api/model_catalog/models:
+    get:
+      tags:
+        - ModelCatalog
+      security:
+        - BearerAuth: []
+      summary: Получить список моделей
+      description: Возвращает список всех моделей с возможностью фильтрации.
+      parameters:
+        - in: query
+          name: model_name
+          schema:
+            type: string
+          description: Фильтрация по имени модели
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Номер страницы
+        - in: query
+          name: per_page
+          schema:
+            type: integer
+            default: 10
+          description: Количество записей на странице
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                  total_pages:
+                    type: integer
+                  total_records:
+                    type: integer
+                  per_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        model_id:
+                          type: integer
+                        product_code:
+                          type: string
+                        model_name:
+                          type: string
+                        status:
+                          type: boolean
+                        model_version:
+                          type: string
+                        model_description:
+                          type: string
+                        creation_date:
+                          type: string
+                          format: date-time
+                        last_launch_date:
+                          type: string
+                          format: date-time
+                        last_modified_date:
+                          type: string
+                          format: date-time
+        '400':
+          description: Неверные параметры пагинации
+        '500':
+          description: Ошибка на сервере
+
+    post:
+      tags:
+        - ModelCatalog
+      security:
+        - BearerAuth: []
+      summary: Создать новую модель
+      description: Создает новую модель с заданными параметрами.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model_name
+                - product_code
+                - status
+              properties:
+                model_name:
+                  type: string
+                product_code:
+                  type: string
+                status:
+                  type: boolean
+                model_version:
+                  type: string
+                  default: "1.0"
+                model_description:
+                  type: string
+                  default: ""
+      responses:
+        '201':
+          description: Модель успешно создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  model_id:
+                    type: integer
+        '400':
+          description: Отсутствуют обязательные поля
+        '500':
+          description: Ошибка на сервере
+
+  /api/model_catalog/{model_id}:
+    get:
+      tags:
+        - ModelCatalog
+      security:
+        - BearerAuth: []
+      summary: Получить модель по ID
+      description: Возвращает модель по заданному ID.
+      parameters:
+        - in: path
+          name: model_id
+          required: true
+          schema:
+            type: integer
+          description: ID модели
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model_id:
+                    type: integer
+                  product_code:
+                    type: string
+                  model_name:
+                    type: string
+                  status:
+                    type: boolean
+                  model_version:
+                    type: string
+                  model_description:
+                    type: string
+                  creation_date:
+                    type: string
+                    format: date-time
+                  last_launch_date:
+                    type: string
+                    format: date-time
+                  last_modified_date:
+                    type: string
+                    format: date-time
+        '404':
+          description: Модель не найдена
+        '500':
+          description: Ошибка на сервере
+
+    put:
+      tags:
+        - ModelCatalog
+      security:
+        - BearerAuth: []
+      summary: Обновить модель по ID
+      description: Обновляет существующую модель с заданными параметрами.
+      parameters:
+        - in: path
+          name: model_id
+          required: true
+          schema:
+            type: integer
+          description: ID модели
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model_name:
+                  type: string
+                product_code:
+                  type: string
+                status:
+                  type: boolean
+                model_version:
+                  type: string
+                model_description:
+                  type: string
+      responses:
+        '200':
+          description: Модель обновлена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Ошибочные данные запроса
+        '404':
+          description: Модель не найдена
+        '500':
+          description: Ошибка на сервере
+
+    delete:
+      tags:
+        - ModelCatalog
+      security:
+        - BearerAuth: []
+      summary: Удалить модель по ID
+      description: Удаляет модель по заданному ID.
+      parameters:
+        - in: path
+          name: model_id
+          required: true
+          schema:
+            type: integer
+          description: ID модели
+      responses:
+        '200':
+          description: Модель успешно удалена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Модель не может быть удалена, так как связана с оценками
+        '404':
+          description: Модель не найдена
+        '500':
+          description: Ошибка на сервере
+
+
 components:
   securitySchemes:
     BearerAuth:
