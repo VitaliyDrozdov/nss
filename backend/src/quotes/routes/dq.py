@@ -178,7 +178,6 @@ def dq2(data=None):
             .first()
         )
         if not product_exists:
-            log_request(data=data, product_code=product_code, runId=runId)
             log_check_history(
                 check_id=check.check_id,
                 product_type=product_type,
@@ -203,7 +202,6 @@ def dq2(data=None):
             .first()
         )
         if not product_type_exists:
-            log_request(data=data, product_code=product_code, runId=runId)
             log_check_history(
                 check_id=check.check_id,
                 product_type=product_type,
@@ -246,6 +244,12 @@ def dq2(data=None):
                 ),
                 400,
             )
+        log_check_history(
+            check_id=check.check_id,
+            product_type=product_type,
+            status=True,
+            runId=runId,
+        )
     else:
         return (
             jsonify(
@@ -288,7 +292,7 @@ def dq2(data=None):
             log_check_history(
                 check_id=check.check_id,
                 product_type=product_type,
-                status=True,
+                status=False,
                 runId=runId,
             )
             return (
@@ -297,7 +301,12 @@ def dq2(data=None):
                 ),
                 400,
             )
-
+        log_check_history(
+            check_id=check.check_id,
+            product_type=product_type,
+            status=False,
+            runId=runId,
+        )
         # 2.2 Проверка корректности пола субъекта
         gender = (
             data.get("quote", {}).get("subjects", {})[0].get("gender", None)
@@ -320,6 +329,51 @@ def dq2(data=None):
         return (
             jsonify(
                 {"error": "Проверка DQ2.2 выключена для данного продукта."}
+            ),
+            400,
+        )
+    check, check_status = validate_check_type(
+        check_type="DQ2.3", product_code=product_code
+    )
+    if check_status is True:
+        doc_type = (
+            data.get("quote", {})
+            .get("subjects", {})[0]
+            .get("documents", None)
+            .get("documentType", None)
+        )
+        if doc_type is None:
+            return (
+                jsonify(
+                    {
+                        "error": "Тип документа не найден. "
+                        "Проверьте структуру JSON."
+                    }
+                ),
+                400,
+            )
+        if doc_type not in {"passport", "driving_license"}:
+            log_check_history(
+                check_id=check.check_id,
+                product_type=product_type,
+                status=False,
+                runId=runId,
+            )
+            return (
+                jsonify({"error": "Неверный тип документа."}),
+                400,
+            )
+        log_check_history(
+            check_id=check.check_id,
+            product_type=product_type,
+            status=True,
+            runId=runId,
+        )
+
+    else:
+        return (
+            jsonify(
+                {"error": "Проверка DQ2.3 выключена для данного продукта."}
             ),
             400,
         )
