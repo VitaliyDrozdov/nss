@@ -4,7 +4,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-import Copyright from "../../components/Copyright";
+import Copyright from "../../../components/Copyright";
 import SignInForm from "./SignInForm";
 
 const SignIn = () => {

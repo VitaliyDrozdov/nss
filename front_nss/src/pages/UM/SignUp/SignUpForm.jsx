@@ -6,7 +6,7 @@ import { Box, Button, TextField } from "@mui/material";
 import { Formik } from "formik";
 import * as yup from "yup";
 
-import api from "../../utils/api";
+import api from "../../../utils/api";
 
 const SignUpForm = () => {
   

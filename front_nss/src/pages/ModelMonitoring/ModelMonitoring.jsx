@@ -10,8 +10,29 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import api from "../../utils/api";
 
 const ModelMonitoring = () => {
+
+  const fetchData = async (values) => {
+    try {
+      const params = new URLSearchParams();
+
+      if (values.model) params.append("model_name", values.model);
+      if (values.metric) params.append("metric_name", values.metri);
+
+      const response = await api.get(`/dwh/?${params.toString()}`);
+
+      
+
+      
+      console.log(response.data.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке данных:", error);
+    }
+  };
+
+
   const formik = useFormik({
     initialValues: {
       reportPeriod: "lastMonth",
@@ -24,6 +45,11 @@ const ModelMonitoring = () => {
       console.log("Form values:", values);
     },
   });
+
+  
+
+
+
 
   return (
     <Box
@@ -62,7 +88,7 @@ const ModelMonitoring = () => {
             }}
           >
             <MenuItem value="lastMonth">За последний месяц</MenuItem>
-            <MenuItem value="lastWeek">За последнию неделю</MenuItem>
+            <MenuItem value="lastWeek">За последнюю неделю</MenuItem>
           </Select>
         </Box>
 

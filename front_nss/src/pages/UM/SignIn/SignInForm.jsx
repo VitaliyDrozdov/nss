@@ -1,18 +1,22 @@
 import React, { useContext } from "react";
 import { useNavigate } from 'react-router-dom';
 
+import { usePermify } from '@permify/react-role';
+
 import { Box, Button, TextField, useTheme } from "@mui/material";
 
 import { Formik } from "formik";
 import * as yup from "yup";
 
-import { ColorModeContext } from "../../hooks/useTheme";
-import { useAuth } from "../../hooks/useAuth"; 
+import { ColorModeContext } from "../../../hooks/useTheme";
+import { useAuth } from "../../../hooks/useAuth"; 
 
 const SignInForm = () => {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const  { login } = useAuth();
+  const { setUser } = usePermify();
+
   const navigate = useNavigate();
 
   const handleFormSubmit = (values) => {
@@ -38,6 +42,14 @@ const SignInForm = () => {
     .then(data => {
       if (data && data.access_token) {
         login(data.access_token);
+        
+        // TODO: данные должны приходить с бэка 
+        // Note: один пользователь может иметь несколько ролей
+        setUser({
+          id: "2",
+          roles: ["manager"], 
+        })
+
         navigate("/quoteOsago");
       } else {
         throw new Error("Токен отсутствует в ответе сервера");

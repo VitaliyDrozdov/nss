@@ -27,7 +27,7 @@ const DataMart = () => {
     product: "",
     model: "",
     insuranceCase: "",
-    features: [],
+    feature: "",
   });
 
   const [data, setData] = useState([]);
@@ -62,24 +62,24 @@ const DataMart = () => {
       "Скор балл": item.predict,
       "Страховой случай": item.is_insurance_case ? "Возник" : "Не возник",
     }));
-  
+
 
   const fetchData = async () => {
     try {
       const params = new URLSearchParams();
 
-      if (filters.product) params.append("product", filters.product);
-      if (filters.model) params.append("model", filters.model);
-      if (filters.insuranceCase) params.append("insurance_case", filters.insuranceCase);
-      if (filters.features.length > 0) params.append("features", filters.features.join(","));
+      if (filters.product) params.append("product_type", filters.product);
+      if (filters.model) params.append("model_name", filters.model);
+      if (filters.insuranceCase) params.append("is_insurance_case", filters.insuranceCase);
+      if (filters.feature) params.append("feature_name", filters.feature);
       if (startDate) params.append("start_date", startDate.toISOString().split("T")[0]);
       if (endDate) params.append("end_date", endDate.toISOString().split("T")[0]);
       params.append("page", page + 1);
       params.append("per_page", rowsPerPage);
       const response = await api.get(`/dwh/?${params.toString()}`);
 
-      const rows=transformData(response.data.data);
-      
+      const rows = transformData(response.data.data);
+
       setData(rows);
       console.log(data);
     } catch (error) {
@@ -118,8 +118,8 @@ const DataMart = () => {
                 onChange={(e) => handleFilterChange("product", e.target.value)}
               >
                 <MenuItem value="">Все продукты</MenuItem>
-                <MenuItem value="OSAGO">ОСАГО</MenuItem>
-                <MenuItem value="LIFE">Страхование жизни</MenuItem>
+                <MenuItem value="ОСАГО">ОСАГО</MenuItem>
+                <MenuItem value="СТРАХОВАНИЕ ЖИЗНИ">Страхование жизни</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -158,20 +158,21 @@ const DataMart = () => {
             <FormControl fullWidth>
               <InputLabel>Фичи</InputLabel>
               <Select
-                multiple
-                value={filters.features}
+                value={filters.feature}
                 onChange={(e) =>
-                  handleFilterChange("features", e.target.value)
+                  handleFilterChange("feature", e.target.value)
                 }
               >
-                <MenuItem value="feature1">Feature 1</MenuItem>
-                <MenuItem value="feature2">Feature 2</MenuItem>
-                <MenuItem value="feature3">Feature 3</MenuItem>
+                <MenuItem value="">Все фичи</MenuItem>
+                <MenuItem value="driver_region">driver_region</MenuItem>
+                <MenuItem value="driver_kvs">driver_kvs</MenuItem>
+                <MenuItem value="driver_gender">driver_gender</MenuItem>
+                <MenuItem value="driver_age">driver_age</MenuItem>
               </Select>
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={15} sm={6} md={1.8}>
             <DatePicker
               label="Дата начала"
               value={startDate}
@@ -187,6 +188,30 @@ const DataMart = () => {
               onChange={(newValue) => setEndDate(newValue)}
               renderInput={(params) => <TextField {...params} fullWidth />}
             />
+          </Grid>
+          <Grid item xs={12} sm={6} md={1}>
+            <Box display="flex" alignItems="center" justifyContent="flex-start">
+              <button
+                onClick={() => {
+                  setStartDate(null);
+                  setEndDate(null);
+                  handleFilterChange("product", "");
+                  handleFilterChange("model", "");
+                  handleFilterChange("insuranceCase", "");
+                  handleFilterChange("feature", "");
+                }}
+                style={{
+                  backgroundColor: "#f44336",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                Сбросить все фильтры
+              </button>
+            </Box>
           </Grid>
         </Grid>
 

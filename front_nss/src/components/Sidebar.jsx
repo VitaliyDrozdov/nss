@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
 import { tokens } from "../hooks/useTheme";
 import api from "../utils/api";
-import { useNavigate } from "react-router-dom";
+import { HasAccess } from "@permify/react-role";
 
 import StorageOutlinedIcon from '@mui/icons-material/StorageOutlined';
 import TimelineOutlinedIcon from "@mui/icons-material/TimelineOutlined";
@@ -28,6 +28,9 @@ import LockPersonOutlinedIcon from '@mui/icons-material/LockPersonOutlined';
 import AddchartOutlinedIcon from '@mui/icons-material/AddchartOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import NoteAddOutlinedIcon from '@mui/icons-material/NoteAddOutlined';
+import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';
+import DnsOutlinedIcon from '@mui/icons-material/DnsOutlined';
 
 const Item = ({ title, to, icon, selected, setSelected }) => {
   const theme = useTheme();
@@ -63,7 +66,6 @@ const Sidebar = () => {
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [selected, setSelected] = useState("/quoteOsago");
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
 
   useEffect(() => {
@@ -161,13 +163,17 @@ const Sidebar = () => {
 
           <Box paddingLeft={isCollapsed ? undefined : "10%"}>
 
-            <Item
-              title="Получить скоринг"
-              to="/quoteOsago"
-              icon={<AssuredWorkloadOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+            <HasAccess
+              roles={["manager"]}
+            >
+              <Item
+                title="Получить скоринг"
+                to="/quoteOsago"
+                icon={<AssuredWorkloadOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+            </HasAccess>
 
             <SubMenu
               icon={<HealthAndSafetyOutlinedIcon />}
@@ -208,50 +214,65 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             >
+              <HasAccess roles={["manager"]}>
 
-              <Item
-                title={
-                  <CustomTitle>
-                    Управление
-                    <br />
-                    проверками
-                  </CustomTitle>
-                }
-                to="/qualityControl"
-                icon={<TuneOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+                <Item
+                  title={
+                    <CustomTitle>
+                      Управление
+                      <br />
+                      проверками
+                    </CustomTitle>
+                  }
+                  to="/qualityControl"
+                  icon={<TuneOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
 
-              <Item
-                title="История проверок"
-                to="/qualityHistory"
-                icon={<RuleOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              </HasAccess>
 
-              <Item
-                title={
-                  <CustomTitle>
-                    История действий
-                    <br />
-                    администратора
-                  </CustomTitle>
-                }
-                to="/qualityAdminHistory"
-                icon={<AssignmentIndOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
 
-              <Item
-                title="Аналитика запросов"
-                to="/qualityAnalytics"
-                icon={<TimelineOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              <HasAccess roles={["manager"]}>
+
+                <Item
+                  title="История проверок"
+                  to="/qualityHistory"
+                  icon={<RuleOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
+
+              <HasAccess roles={["manager"]}>
+
+                <Item
+                  title={
+                    <CustomTitle>
+                      История действий
+                      <br />
+                      администратора
+                    </CustomTitle>
+                  }
+                  to="/qualityAdminHistory"
+                  icon={<AssignmentIndOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+
+              </HasAccess>
+
+              <HasAccess roles={["manager"]}>
+
+                <Item
+                  title="Аналитика запросов"
+                  to="/qualityAnalytics"
+                  icon={<TimelineOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+
+              </HasAccess>
             </SubMenu>
 
             <SubMenu
@@ -260,67 +281,107 @@ const Sidebar = () => {
               selected={selected}
               setSelected={setSelected}
             >
-              <Item
-                title="Настройки"
-                to="/dataMartSettings"
-                icon={<TuneOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              <HasAccess roles={["manager"]}>
+                <Item
+                  title="Настройки"
+                  to="/dataMartSettings"
+                  icon={<TuneOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
 
-              <Item
-                title="Витрина"
-                to="/dataMart"
-                icon={<TableChartOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              </HasAccess>
+
+              <HasAccess roles={["manager"]}>
+
+                <Item
+                  title="Витрина"
+                  to="/dataMart"
+                  icon={<TableChartOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+
+              </HasAccess>
 
             </SubMenu>
 
-            <Item
-              title="Каталог моделей"
-              to="/modelCatalog"
-              icon={<ListAltOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+            <HasAccess roles={["manager"]}>
 
-            <Item
+              <Item
+                title="Каталог моделей"
+                to="/modelCatalog"
+                icon={<DnsOutlinedIcon />}
+                selected={selected}
+                setSelected={setSelected}
+              />
+            </HasAccess>
+
+
+
+            <SubMenu
               title="Мониторинг моделей"
               to="/modelMonitoring"
               icon={<LegendToggleOutlinedIcon />}
-              selected={selected}
-              setSelected={setSelected}
-            />
+
+            >
+              <HasAccess roles={["manager"]}>
+                <Item
+                  title="Создать отчет"
+                  to="/createReport"
+                  icon={<NoteAddOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
+
+              <HasAccess roles={["manager"]}>
+                <Item
+                  title="Журнал отчётов"
+                  to="/reportList"
+                  icon={<FormatListBulletedOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
+            </SubMenu>
+
 
             <SubMenu
               icon={<RemoveRedEyeOutlinedIcon />}
               title="Наблюдаемость"
             >
-              <Item
-                title="Дашборд"
-                to="/dashboard"
-                icon={<AssessmentOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              <HasAccess roles={["manager"]}>
+                <Item
+                  title="Дашборд"
+                  to="/dashboard"
+                  icon={<AssessmentOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
 
-              <Item
-                title="Список инцидентов"
-                to="/incidentList"
-                icon={<ListAltOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              <HasAccess roles={["manager"]}>
 
-              <Item
-                title="Уведомления"
-                to="/notifications"
-                icon={<NotificationsNoneOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+                <Item
+                  title="Список инцидентов"
+                  to="/incidentList"
+                  icon={<ListAltOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
+
+              <HasAccess roles={["manager"]}>
+
+                <Item
+                  title="Уведомления"
+                  to="/notifications"
+                  icon={<NotificationsNoneOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
 
             </SubMenu>
 
@@ -328,62 +389,76 @@ const Sidebar = () => {
               icon={<AdminPanelSettingsOutlinedIcon />}
               title="Администрирование"
             >
+              <HasAccess roles={["manager"]}>
 
-              <Item
-                title={
-                  <CustomTitle>
-                    Управление
-                    <br />
-                    учётными записями
-                  </CustomTitle>
-                }
-                to="/manageUsers"
-                icon={<TuneOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
-              <Item
-                title={
-                  <CustomTitle>
-                    Управление
-                    <br />
-                    ролями и доступом
-                  </CustomTitle>
-                }
-                to="/manageRoles"
-                icon={<LockPersonOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
-              <Item
-                title="Отчётность"
-                to="/reporting"
-                icon={<AddchartOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+                <Item
+                  title={
+                    <CustomTitle>
+                      Управление
+                      <br />
+                      учётными записями
+                    </CustomTitle>
+                  }
+                  to="/manageUsers"
+                  icon={<TuneOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
 
-              <Item
-                title={
-                  <CustomTitle>
-                    Протокол сессий
-                    <br />
-                    пользователей
-                  </CustomTitle>
-                }
-                to="/userSessionHistory"
-                icon={<GroupsOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              <HasAccess roles={["manager"]}>
+                <Item
+                  title={
+                    <CustomTitle>
+                      Управление
+                      <br />
+                      ролями и доступом
+                    </CustomTitle>
+                  }
+                  to="/manageRoles"
+                  icon={<LockPersonOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
 
-              <Item
-                title="Протокол изменений"
-                to="/profile"
-                icon={<HistoryOutlinedIcon />}
-                selected={selected}
-                setSelected={setSelected}
-              />
+              </HasAccess>
+
+              <HasAccess roles={["manager"]}>
+                <Item
+                  title="Отчётность"
+                  to="/reporting"
+                  icon={<AddchartOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
+
+              <HasAccess roles={["manager"]}>
+
+                <Item
+                  title={
+                    <CustomTitle>
+                      Протокол сессий
+                      <br />
+                      пользователей
+                    </CustomTitle>
+                  }
+                  to="/userSessionHistory"
+                  icon={<GroupsOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
+              <HasAccess roles={["manager"]}>
+
+                <Item
+                  title="Протокол изменений"
+                  to="/profile"
+                  icon={<HistoryOutlinedIcon />}
+                  selected={selected}
+                  setSelected={setSelected}
+                />
+              </HasAccess>
 
             </SubMenu>
 
