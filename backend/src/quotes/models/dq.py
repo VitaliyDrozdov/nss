@@ -141,11 +141,12 @@ class Checks(db.Model):
         "CheckProductStatus", back_populates="check"
     )
     check_history = db.relationship("CheckHistory", back_populates="check")
-    __table_args__ = (
-        db.CheckConstraint(
-            "type IN ('DQ1', 'DQ2')", name="check_type_constraint"
-        ),
-    )
+    # __table_args__ = (
+    #     db.CheckConstraint(
+    #         "type IN ('DQ1', 'DQ2.1', 'DQ2.2', 'DQ2.3')",
+    # name="check_type_constraint"
+    #     ),
+    # )
 
 
 class CheckHistory(db.Model):

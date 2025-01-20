@@ -138,8 +138,18 @@ data = {
         },
         {
             "check_id": 2,
-            "type": "DQ2",
-            "check_name": "DQ2 check",
+            "type": "DQ2.1",
+            "check_name": "DQ2.1 check",
+        },
+        {
+            "check_id": 3,
+            "type": "DQ2.2",
+            "check_name": "DQ2.2 check",
+        },
+        {
+            "check_id": 4,
+            "type": "DQ2.3",
+            "check_name": "DQ2.3 check",
         },
     ],
     CheckProductStatus: [
@@ -147,6 +157,10 @@ data = {
         {"product_code": "prod001", "check_id": 2, "condition": True},
         {"product_code": "prod002", "check_id": 1, "condition": False},
         {"product_code": "prod002", "check_id": 2, "condition": False},
+        {"product_code": "prod001", "check_id": 3, "condition": True},
+        {"product_code": "prod001", "check_id": 4, "condition": True},
+        {"product_code": "prod002", "check_id": 3, "condition": False},
+        {"product_code": "prod002", "check_id": 4, "condition": False},
     ],
 }
 
