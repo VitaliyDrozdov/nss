@@ -120,43 +120,31 @@ def get_models(user):
             return jsonify({"error": str(e)}), 500
 
 
-@bp.route("/<int:model_id>", methods=["GET"])
-def get_model(model_id):
-    try:
-        model = Models.query.get(model_id)
-        if not model:
-            return jsonify({"error": "Model not found"}), 404
-
-        # Возвращаем данные модели
-        return (
-            jsonify(
-                {
-                    "model_id": model.model_id,
-                    "product_code": model.product_code,
-                    "model_name": model.model_name,
-                    "status": model.status,
-                    "model_version": model.model_version,
-                    "model_description": model.model_description,
-                    "creation_date": model.creation_date,
-                    "last_launch_date": model.last_launch_date,
-                    "last_modified_date": model.last_modified_date,
-                }
-            ),
-            200,
-        )
-    except SQLAlchemyError as e:
-        return jsonify({"error": str(e)}), 500
-
-
-@bp.route("/<int:model_id>", methods=["PUT", "DELETE"])
-def update_model(model_id):
+@bp.route("/<int:model_id>", methods=["GET", "PUT", "DELETE"])
+def model_detail(model_id):
+    model = Models.query.get(model_id)
+    if request.method == "GET":
+        try:
+            return (
+                jsonify(
+                    {
+                        "model_id": model.model_id,
+                        "product_code": model.product_code,
+                        "model_name": model.model_name,
+                        "status": model.status,
+                        "model_version": model.model_version,
+                        "model_description": model.model_description,
+                        "creation_date": model.creation_date,
+                        "last_launch_date": model.last_launch_date,
+                        "last_modified_date": model.last_modified_date,
+                    }
+                ),
+                200,
+            )
+        except SQLAlchemyError as e:
+            return jsonify({"error": str(e)}), 500
     if request.method == "PUT":
         data = request.json
-        model = Models.query.get(model_id)
-
-        if not model:
-            return jsonify({"error": "Model not found"}), 404
-
         model_name = data.get("model_name")
         if model_name:
             model.model_name = model_name
@@ -186,10 +174,6 @@ def update_model(model_id):
             db.session.rollback()
             return jsonify({"error": str(e)}), 500
     elif request.method == "DELETE":
-        model = Models.query.get(model_id)
-
-        if not model:
-            return jsonify({"error": "Model not found"}), 404
 
         if Scores.query.filter_by(model_id=model_id).first():
             return (

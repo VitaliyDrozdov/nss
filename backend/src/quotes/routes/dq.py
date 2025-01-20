@@ -456,14 +456,13 @@ def get_check_history(user):
 
 
 @bp.route("/<int:check_id>", methods=["GET", "DELETE", "PATCH"])
-@token_required
-@admin_required
-def handle_check_dq(user, check_id):
+# @token_required
+# @admin_required
+def handle_check_dq(check_id):
     """
     Эндпоинт для получения, удаления записи из истории проверок
     или изменения статуса проверки.
     """
-    check_id = request.json.get("check_id")
     check_exists = (
         db.session.query(CheckHistory).filter_by(id=check_id).first()
     )

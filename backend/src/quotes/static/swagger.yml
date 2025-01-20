@@ -1152,6 +1152,93 @@ paths:
                 properties:
                   error:
                     type: string
+
+  /api/export:
+    post:
+      tags:
+        - DWH
+      security:
+        - BearerAuth: []
+      summary: Экспорт данных в CSV
+      description: Экспортирует данные из DWH в формате CSV в соответствии с фильтрами, переданными в запросе.
+      operationId: exportData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_type:
+                  type: string
+                  description: Тип продукта
+                run_id:
+                  type: string
+                  description: ID выполнения
+                quote_id:
+                  type: string
+                  description: ID цитаты
+                briefcase_date:
+                  type: string
+                  format: date
+                  description: Дата кейса
+                start_date:
+                  type: string
+                  format: date
+                  description: Дата начала
+                end_date:
+                  type: string
+                  format: date
+                  description: Дата окончания
+                model_name:
+                  type: string
+                  description: Название модели
+                feature_name:
+                  type: string
+                  description: Название признака
+                feature_value:
+                  type: string
+                  description: Значение признака
+                predict:
+                  type: number
+                  format: float
+                  description: Прогноз
+                is_insurance_case:
+                  type: boolean
+                  description: Признак страхового случая
+                data_insurance_case:
+                  type: string
+                  description: Данные страхового случая
+      responses:
+        '200':
+          description: Данные успешно экспортированы в CSV
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: |
+                  product_type,run_id,quote_id,briefcase_date,start_date,end_date,model_name,feature_name,feature_value,predict,is_insurance_case,data_insurance_case
+                  Life,run123,quote001,2023-01-01,2023-01-10,2023-01-20,ModelX,age,45,0.85,true,Data123
+        '400':
+          description: Ошибка в запросе (например, некорректные фильтры)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid filters."
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error."
   /api/observability:
     get:
       tags:
