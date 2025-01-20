@@ -855,6 +855,77 @@ paths:
           description: Доступно только админу.
         '500':
           description: Ошибка сервера.
+  /api/dq/manage:
+    put:
+      tags:
+        - DataQuality
+      security:
+        - BearerAuth: []
+      summary: Manage check statuses
+      description: Включает или отключает проверки для заданного типа продукта и проверки.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                check_type:
+                  type: string
+                  enum: ["DQ1", "DQ2.1", "DQ2.2", "DQ2.3"]
+                  description: Тип проверки.
+                product_type:
+                  type: string
+                  enum: ["osago", "life"]
+                  description: Тип продукта.
+                condition:
+                  type: boolean
+                  description: Состояние проверки (включить или выключить).
+              required:
+                - check_type
+                - product_type
+                - condition
+      responses:
+        "200":
+          description: Успешное обновление состояния проверок.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Checks type 'DQ1' have been enabled
+        "400":
+          description: Ошибка валидации данных запроса.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: product_type must be in '{"osago", "life"}'
+        "404":
+          description: Записи для обновления не найдены.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No records updated. Check your filters.
+        "500":
+          description: Внутренняя ошибка сервера.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Database connection error
 
   /api/dwh:
     get:
