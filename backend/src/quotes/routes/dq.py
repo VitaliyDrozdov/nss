@@ -382,7 +382,7 @@ def dq2(data=None):
 
 @bp.route("/", methods=["GET"])
 @token_required
-# @admin_required
+@admin_required
 def get_check_history(user):
     """
     Эндпоинт для получения списка всех проверок с возможностью фильтрации.
@@ -515,3 +515,70 @@ def handle_check_dq(user, check_id):
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/manage", methods=["PUT"])
+def manage_checks():
+    data = request.json
+    check_type = data.get("check_type")
+    product_type = data.get("product_type")
+    condition = data.get("condition")
+    if product_type not in {"osgo", "life"}:
+        return (
+            jsonify({"error": 'check must be in \'{"osago", "life"}\' '}),
+            400,
+        )
+    if check_type not in {"DQ1", "DQ2.1", "DQ2.2", "DQ2.3"}:
+        return (
+            jsonify(
+                {
+                    "error": 'check must be in \'{"DQ1", "DQ2.1", "DQ2.2", "DQ2.3"}\' '  # noqa E501
+                }
+            ),
+            400,
+        )
+    if condition not in {True, False}:
+        return (
+            jsonify({"error": "condition must be True or False"}),
+            400,
+        )
+
+    try:
+        checks = (
+            db.session.query(Checks).filter(Checks.type == check_type).all()
+        )
+        check_ids = [check.check_id for check in checks]
+        product_code = (
+            db.session.query(Products)
+            .filter(Products.product_type == product_type)
+            .first()
+            .product_code
+        )
+        updated_rows = (
+            db.session.query(CheckProductStatus)
+            .filter(
+                CheckProductStatus.check_id.in_(check_ids),
+                CheckProductStatus.product_code == product_code,
+            )
+            .update({"condition": condition}, synchronize_session="fetch")
+        )
+
+        if updated_rows == 0:
+            return (
+                jsonify(
+                    {"message": "No records updated. Check your filters."}
+                ),
+                404,
+            )
+        db.session.commit()
+        action = "enabled" if condition else "disabled"
+        return (
+            jsonify(
+                {"message": f"Checks type '{check_type}' have been {action}"}
+            ),
+            200,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
