@@ -13,7 +13,7 @@ import DataMart from "./pages/DWH/DataMart";
 import IncidentList from "./pages/Observability/IncidentList";
 import ListQuality from "./pages/Quality/QualityHistory";
 import SignIn from "./pages/UM/SignIn/SignIn";
-import SignUp from "./pages/UM/SignUp/SignUp";
+import AccountManagement from "./pages/UM/SignUp/SignUp";
 
 import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
@@ -62,7 +62,7 @@ function App() {
                 {/* unprotected routes */}
 
                 <Route path="/signin" element={<SignIn />} />
-                <Route path="/manageUsers" element={<SignUp />} />
+                <Route path="/manageUsers" element={<AccountManagement />} />
 
                 {/* protected routes */}
                 <Route element={<ProtectedRoutes />}>
