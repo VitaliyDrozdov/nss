@@ -7,7 +7,7 @@
 
 """
 
-from typing import List, Literal, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -17,14 +17,14 @@ class Document(BaseModel):
     documentNumber: str
     issueDate: str
 
-    @field_validator("documentType")
-    @classmethod
-    def validate_document_type(cls, value):
-        if value not in ["passport", "driving license"]:
-            raise ValueError(
-                'document type must be "passport" or "driving license"'
-            )
-        return value
+    # @field_validator("documentType")
+    # @classmethod
+    # def validate_document_type(cls, value):
+    #     if value not in ["passport", "driving license"]:
+    #         raise ValueError(
+    #             'document type must be "passport" or "driving license"'
+    #         )
+    #     return value
 
     @model_validator(mode="after")
     def check_required(self):
@@ -66,7 +66,8 @@ class Header(BaseModel):
 
 
 class Product(BaseModel):
-    productType: Literal["osago", "life"]
+    # productType: Literal["osago", "life"]
+    productType: str
     productCode: str
 
     @model_validator(mode="after")

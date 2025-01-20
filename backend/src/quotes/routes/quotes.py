@@ -126,6 +126,7 @@ def predict(data, product_code=1, model_id=1):
         prediction = None  # Неизвестная модель
 
     logger.info("Got result of prediction: %s", prediction)
+
     return {
         "predict": {
             "percent": f"{prediction * 100:.2f}%",
@@ -155,7 +156,7 @@ def handle_quote(user):
             # если ошибка, то добавляем указание какая dq не прошла:
             if dq1_status_code != 200 and dq1_status_code != 403:
                 dq1_data = dq1_data.get_json()
-                dq1_data["type"] = "DQ1 failed"
+                # dq1_data["type"] = "DQ1 failed"
                 return jsonify(dq1_data), dq1_status_code
         # если все ок, то просто дальше возращаем ответ:c
         validated_data = dq1_response

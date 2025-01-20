@@ -31,6 +31,7 @@ def create_app():
     app.register_blueprint(bp_dwh, url_prefix="/api/dwh")
     app.register_blueprint(bp_obs, url_prefix="/api/observability")
     app.register_blueprint(bp_monitor, url_prefix="/api/monitoring")
+    app.register_blueprint(bp_catalog, url_prefix="/api/model_catalog")
     db.init_app(app)  # Связь экземпляра бд с приложением
     migrate = Migrate(app, db)  # Создание миграций
     mail.init_app(app)

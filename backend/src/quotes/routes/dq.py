@@ -39,7 +39,7 @@ def log_request(data, product_code, runId, status="received"):
             request=data,
             product_code=product_code,
             status=status,
-            date=datetime.utcnow(),
+            date=datetime.now(),
             deleted=False,
         )
         db.session.add(new_request)
@@ -140,7 +140,7 @@ def dq1(data=None):
                 status=False,
                 runId=runId,
             )
-            return jsonify({"error": str(e)}), 400
+            return jsonify({"error": str(e), "details": "DQ1 failed"}), 400
     else:
         return (
             jsonify({"error": "Проверка DQ1 выключена для данного продукта."}),
@@ -172,28 +172,28 @@ def dq2(data=None):
     )
     # 2.1 Проверка продукта
     if check_status is True:
-        product_exists = (
-            db.session.query(Products)
-            .filter(Products.product_type == product_type)
-            .first()
-        )
-        if not product_exists:
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=False,
-                runId=runId,
-            )
-            return (
-                jsonify(
-                    {
-                        "error": "Расчет скорингового балла по данному "
-                        "страховому продукту не предусмотрен в системе.",
-                        "details": f"productCode '{product_code}'.",
-                    }
-                ),
-                400,
-            )
+        # product_exists = (
+        #     db.session.query(Products)
+        #     .filter(Products.product_type == product_type)
+        #     .first()
+        # )
+        # if not product_exists:
+        #     log_check_history(
+        #         check_id=check.check_id,
+        #         product_type=product_type,
+        #         status=False,
+        #         runId=runId,
+        #     )
+        #     return (
+        #         jsonify(
+        #             {
+        #                 "error": "Расчет скорингового балла по данному "
+        #                 "страховому продукту не предусмотрен в системе.",
+        #                 "details": f"productCode '{product_code}'.",
+        #             }
+        #         ),
+        #         400,
+        #     )
 
         # Проверка наличия типа продукта в таблице products
         product_type_exists = (
@@ -213,7 +213,8 @@ def dq2(data=None):
                     {
                         "error": "Расчет скорингового балла по данному страховому "  # noqa E501
                         "продукту не предусмотрен в системе.",
-                        "details": f"productType '{product_type}'.",
+                        "description": f"productType '{product_type}'.",
+                        "detals": "DQ2.1 failed",
                     }
                 ),
                 400,
@@ -238,8 +239,9 @@ def dq2(data=None):
                     {
                         "error": "Расчет скорингового балла по данному страховому"  # noqa E501
                         "продукту не предусмотрен в системе.",
-                        "details": f"productType '{product_type},"
+                        "descriptions": f"productType '{product_type},"
                         f"productCode: '{product_code}'.",
+                        "detals": "DQ2.1 failed",
                     }
                 ),
                 400,
@@ -285,7 +287,15 @@ def dq2(data=None):
                 status=False,
                 runId=runId,
             )
-            return jsonify({"error": "Клиент не достиг совершеннолетия"}), 400
+            return (
+                jsonify(
+                    {
+                        "error": "Клиент не достиг совершеннолетия",
+                        "detals": "DQ2.2 failed",
+                    }
+                ),
+                400,
+            )
 
         # 2.2 Проверка возраста субъекта (максимум 90 лет)
         if age > 90:
@@ -297,7 +307,10 @@ def dq2(data=None):
             )
             return (
                 jsonify(
-                    {"error": "Возраст клиента выше допустимого значения"}
+                    {
+                        "error": "Возраст клиента выше допустимого значения",
+                        "detals": "DQ2.2 failed",
+                    }
                 ),
                 400,
             )
@@ -318,7 +331,15 @@ def dq2(data=None):
                 status=False,
                 runId=runId,
             )
-            return jsonify({"error": "Выберите пол: female/male"}), 400
+            return (
+                jsonify(
+                    {
+                        "error": "Выберите пол: female/male",
+                        "detals": "DQ2.2 failed",
+                    }
+                ),
+                400,
+            )
         log_check_history(
             check_id=check.check_id,
             product_type=product_type,
@@ -336,10 +357,11 @@ def dq2(data=None):
         check_type="DQ2.3", product_code=product_code
     )
     if check_status is True:
+        # TODO: сделать поиск по нескольким документам
         doc_type = (
             data.get("quote", {})
             .get("subjects", {})[0]
-            .get("documents", None)
+            .get("documents", None)[0]
             .get("documentType", None)
         )
         if doc_type is None:
@@ -360,7 +382,12 @@ def dq2(data=None):
                 runId=runId,
             )
             return (
-                jsonify({"error": "Неверный тип документа."}),
+                jsonify(
+                    {
+                        "error": "Неверный тип документа.",
+                        "detals": "DQ2.3 failed",
+                    }
+                ),
                 400,
             )
         log_check_history(

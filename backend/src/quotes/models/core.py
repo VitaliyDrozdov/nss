@@ -1,3 +1,5 @@
+import datetime
+
 from quotes.config import db
 
 
@@ -66,6 +68,14 @@ class Models(db.Model):
     status = db.Column(db.Boolean, nullable=False)
     model_version = db.Column(db.String(5), nullable=False, default="1.0")
     model_description = db.Column(db.String(100))
+    creation_date = db.Column(
+        db.DateTime, nullable=True, default=datetime.datetime.now()
+    )
+    last_launch_date = db.Column(
+        db.DateTime,
+        nullable=True,
+    )
+    last_modified_date = db.Column(db.DateTime, nullable=True)
 
     product = db.relationship("Products", backref="models")
 
