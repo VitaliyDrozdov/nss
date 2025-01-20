@@ -1815,7 +1815,7 @@ paths:
                     type: string
 
 
-  /api/model_catalog/models:
+  /api/model_catalog:
     get:
       tags:
         - ModelCatalog
