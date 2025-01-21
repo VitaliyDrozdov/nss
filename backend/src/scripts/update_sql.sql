@@ -624,3 +624,7 @@ and dm.is_insurance_case=true
 and dm.feature_name in ('driver_region', 'driver_age')
 ;
 */
+
+
+ALTER TABLE model_monitoring.report_log
+ADD COLUMN file varchar(255);

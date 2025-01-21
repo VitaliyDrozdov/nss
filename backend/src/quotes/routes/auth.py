@@ -78,7 +78,15 @@ def login():
     if check_password_hash(user.password, password):
         user.generate_token()
         db.session.commit()
-        return jsonify({"access_token": user.token}), 200
+        return (
+            jsonify(
+                {
+                    "access_token": user.token,
+                    "roles": [role.name for role in user.roles],
+                }
+            ),
+            200,
+        )
     user.login_attempts += 1
     db.session.commit()
     if user.login_attempts >= 3:
@@ -102,7 +110,6 @@ def login():
             ),
             403,
         )
-    return jsonify({"error": "Invalid credentials"}), 401
 
 
 @bp.route("/logout", methods=["POST"])

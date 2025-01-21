@@ -17,10 +17,12 @@ bp = Blueprint("model_catalog", __name__)
 def get_models(user):
     if request.method == "GET":
         base_query = """
-        SELECT model_id, product_code, model_name, status, model_version,
-        model_description,
-            creation_date, last_launch_date, last_modified_date
-        FROM "ml.models"
+        SELECT m.model_id, p.product_type, m.model_name,
+        m.status, m.model_version,
+        m.model_description,
+            m.creation_date, m.last_launch_date, m.last_modified_date
+        FROM "ml.models" m
+        JOIN "fs.products" p USING(product_code)
         WHERE 1=1
         """
         count_query = """
@@ -86,7 +88,6 @@ def get_models(user):
 
     elif request.method == "POST":
         data = request.json
-
         required_fields = ["model_name", "product_code", "status"]
         for field in required_fields:
             if field not in data:
@@ -120,9 +121,17 @@ def get_models(user):
             return jsonify({"error": str(e)}), 500
 
 
-@bp.route("/<int:model_id>", methods=["GET", "PUT", "DELETE"])
-def model_detail(model_id):
-    model = Models.query.get(model_id)
+@bp.route("/<string:model_name>", methods=["GET", "PUT", "DELETE"])
+@token_required
+@admin_required
+def model_detail(user, model_name):
+    model = Models.query.filter_by(model_name=model_name).first()
+    if not model:
+        return (
+            jsonify({"error": f"Model with name '{model_name}' not found"}),
+            404,
+        )
+
     if request.method == "GET":
         try:
             return (
@@ -174,8 +183,7 @@ def model_detail(model_id):
             db.session.rollback()
             return jsonify({"error": str(e)}), 500
     elif request.method == "DELETE":
-
-        if Scores.query.filter_by(model_id=model_id).first():
+        if Scores.query.filter_by(model_name=model_name).first():
             return (
                 jsonify(
                     {"error": "Cannot delete model with associated scores"}

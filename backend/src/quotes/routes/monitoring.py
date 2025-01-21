@@ -1,6 +1,9 @@
-from datetime import datetime
+import csv
+import io
+import os
+from datetime import datetime, timedelta
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -43,22 +46,28 @@ def get_report_logs(user):
         base_query += " AND monitoring_type = :monitoring_type"
         count_query += " AND monitoring_type = :monitoring_type"
         filters["monitoring_type"] = incoming_filters["monitoring_type"]
+
     if "calculation_date" in incoming_filters:
-        try:
-            filters["calculation_date"] = datetime.strptime(
-                incoming_filters["calculation_date"], "%Y-%m-%dT%H:%M:%S"
-            )
-            base_query += " AND calculation_date >= :calculation_date"
-            count_query += " AND calculation_date >= :calculation_date"
-        except ValueError:
-            return (
-                jsonify(
-                    {
-                        "error": "Invalid calculation_date format. Use YYYY-MM-DDTHH:MM:SS."  # noqa
-                    }
-                ),
-                400,
-            )
+        date_filter = incoming_filters["calculation_date"]
+        now = datetime.now()
+
+        if date_filter == "lastMonth":
+            first_day_this_month = now.replace(day=1)
+            last_day_last_month = first_day_this_month - timedelta(days=1)
+            start_date = last_day_last_month.replace(day=1)
+            end_date = first_day_this_month
+        elif date_filter == "lastWeek":
+            start_date = now - timedelta(weeks=1)
+            end_date = now
+        elif date_filter == "lastYear":
+            start_date = now.replace(year=now.year - 1)
+            end_date = now
+        else:
+            return jsonify({"error": "Invalid calculation_date filter"}), 400
+        base_query += " AND calculation_date >= :start_date AND calculation_date <= :end_date"  # noqa E501
+        count_query += " AND calculation_date >= :start_date AND calculation_date <= :end_date"  # noqa E501
+        filters["start_date"] = start_date
+        filters["end_date"] = end_date
 
     try:
         page = int(request.args.get("page", 1))
@@ -104,9 +113,25 @@ def get_report_logs(user):
 @bp.route("/create", methods=["POST"])
 @token_required
 def create_report_log(user):
-    VALID_MODEL_NAMES = {"osago", "life_insurance"}
-    VALID_MONITORING_TYPES = {"On-demand", "Scheduled"}
     data = request.json
+    VALID_MODEL_NAMES = {"OSAGO", "LIFE_INSURANCE"}
+    VALID_MONITORING_TYPES = {"On-demand", "Scheduled"}
+    VALID_TIME_PERIODS = ["lastWeek", "lastMonth", "lastYear"]
+    if (
+        "time_period" not in data
+        or data["time_period"] not in VALID_TIME_PERIODS
+    ):
+        return (
+            jsonify(
+                {
+                    "error": "Invalid or missing time_period."
+                    "Valid values are lastWeek, lastMonth, lastYear."
+                }
+            ),
+            400,
+        )
+    time_period = data.get("time_period")
+    now = datetime.now()
     try:
         if (
             not data.get("model_name")
@@ -122,8 +147,8 @@ def create_report_log(user):
                 ),
                 400,
             )
-
-        if data.get("model_name") not in VALID_MODEL_NAMES:
+        model_name = data.get("model_name")
+        if model_name.upper() not in VALID_MODEL_NAMES:
             return (
                 jsonify(
                     {
@@ -141,26 +166,72 @@ def create_report_log(user):
                 ),
                 400,
             )
+
+        if time_period == "lastWeek":
+            start_date = now - timedelta(weeks=1)
+        elif time_period == "lastMonth":
+            first_day_this_month = now.replace(day=1)
+            last_day_last_month = first_day_this_month - timedelta(days=1)
+            start_date = last_day_last_month.replace(day=1)
+        elif time_period == "lastYear":
+            start_date = now.replace(year=now.year - 1)
+        end_date = now
+        query = """
+        SELECT feature_name,feature_value,  start_date, end_date
+        FROM dwh.data_mart
+        WHERE start_date >= :start_date
+        """
+        # TODO:  WHERE + model_name
+        q_params = {
+            "start_date": start_date,
+            "end_date": end_date,
+            "model_name": model_name,
+        }
+
+        result = db.session.execute(text(query), q_params).mappings()
+        rows = result.fetchall()
+
+        # csv_file = io.StringIO()
+        # csv_writer = csv.writer(csv_file)
+        # csv_writer.writerow(["feature_name", "feature_value", "time_period"])
+        os.makedirs("reports", exist_ok=True)
+        file_name = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        file_path = os.path.join("reports", file_name)
+        with open(file_path, "w", newline="") as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(
+                ["feature_name", "feature_value", "time_period"]
+            )
+
+            for row in rows:
+                feature_name = row["feature_name"]
+                feature_value = row["feature_value"]
+                time_period_label = (
+                    f"{start_date.strftime('%Y-%m-%d')}"
+                    f"to {end_date.strftime('%Y-%m-%d')}"
+                )
+                csv_writer.writerow(
+                    [feature_name, feature_value, time_period_label]
+                )
+
         insert_query = """
-        INSERT INTO model_monitoring.report_log (model_name, metric_name, monitoring_type, calculation_date)
-        VALUES (:model_name, :metric_name, :monitoring_type, :calculation_date)
+        INSERT INTO model_monitoring.report_log (model_name, metric_name, monitoring_type, calculation_date, file)
+        VALUES (:model_name, :metric_name, :monitoring_type, :calculation_date, :file)
         RETURNING id
         """  # noqa E501
         params = {
             "model_name": data["model_name"],
             "metric_name": data["metric_name"],
             "monitoring_type": data["monitoring_type"],
-            "calculation_date": datetime.utcnow(),
+            "calculation_date": datetime.now(),
+            "file": file_path,
         }
-
         result = db.session.execute(text(insert_query), params)
         db.session.commit()
 
-        new_report_log_id = result.fetchone()[0]
+        new_report_id = result.fetchone()[0]
         return (
-            jsonify(
-                {"message": "Report log created", "id": new_report_log_id}
-            ),
+            jsonify({"message": "Report log created", "id": new_report_id}),
             201,
         )
     except SQLAlchemyError as e:
@@ -168,3 +239,31 @@ def create_report_log(user):
         return jsonify({"error": str(e)}), 500
     finally:
         db.session.close()
+
+
+@bp.route("/download/<int:report_id>", methods=["GET"])
+@token_required
+def download_report(user, report_id):
+    query = """
+    SELECT file
+    FROM model_monitoring.report_log
+    WHERE id = :report_id
+    """
+    result = db.session.execute(text(query), {"report_id": report_id})
+    file_path = result.fetchone()
+    if not file_path:
+        return (
+            jsonify({"error": "File not found", "result": f"{file_path}"}),
+            404,
+        )
+
+    try:
+        with open(file_path[0], "rb") as f:
+            file_data = f.read()
+        return send_file(
+            io.BytesIO(file_data),
+            as_attachment=True,
+            download_name=f"report_{report_id}.csv",
+        )
+    except FileNotFoundError:
+        return jsonify({"error": "File not found", "check": "test"}), 404

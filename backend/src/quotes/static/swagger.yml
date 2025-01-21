@@ -1943,21 +1943,21 @@ paths:
         '500':
           description: Ошибка на сервере
 
-  /api/model_catalog/{model_id}:
+  /api/model_catalog/{model_name}:
     get:
       tags:
         - ModelCatalog
       security:
         - BearerAuth: []
-      summary: Получить модель по ID
-      description: Возвращает модель по заданному ID.
+      summary: Получить модель по name
+      description: Возвращает модель по заданному name.
       parameters:
         - in: path
-          name: model_id
+          name: model_name
           required: true
           schema:
-            type: integer
-          description: ID модели
+            type: string
+          description: name модели
       responses:
         '200':
           description: Успешный ответ
@@ -1966,8 +1966,6 @@ paths:
               schema:
                 type: object
                 properties:
-                  model_id:
-                    type: integer
                   product_code:
                     type: string
                   model_name:
@@ -1997,15 +1995,15 @@ paths:
         - ModelCatalog
       security:
         - BearerAuth: []
-      summary: Обновить модель по ID
+      summary: Обновить модель по name
       description: Обновляет существующую модель с заданными параметрами.
       parameters:
         - in: path
-          name: model_id
+          name: model_name
           required: true
           schema:
-            type: integer
-          description: ID модели
+            type: string
+          description: name модели
       requestBody:
         content:
           application/json:
@@ -2044,15 +2042,15 @@ paths:
         - ModelCatalog
       security:
         - BearerAuth: []
-      summary: Удалить модель по ID
-      description: Удаляет модель по заданному ID.
+      summary: Удалить модель по name
+      description: Удаляет модель по заданному name.
       parameters:
         - in: path
-          name: model_id
+          name: model_name
           required: true
           schema:
-            type: integer
-          description: ID модели
+            type: string
+          description: name модели
       responses:
         '200':
           description: Модель успешно удалена
