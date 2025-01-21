@@ -1787,9 +1787,14 @@ paths:
                   enum:
                     - On-demand
                     - Scheduled
-                calculation_date:
+                time_period:
                   type: string
-                  format: date-time
+                  description: Time period for report generation
+                  enum:
+                    - lastWeek
+                    - lastMonth
+                    - lastYear
+                  example: lastMonth
       responses:
         '201':
           description: Лог отчетности успешно создан
@@ -1823,6 +1828,31 @@ paths:
                   error:
                     type: string
 
+  /api/monitoring/download/{report_id}:
+    get:
+      summary: Download a report file
+      operationId: downloadReport
+      tags:
+        - Report Logs
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          description: The ID of the report to download
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A CSV file containing the report data
+          content:
+            application/csv:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Report not found
+        '500':
+          description: Internal server error
 
   /api/model_catalog:
     get:
