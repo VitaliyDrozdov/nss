@@ -1833,7 +1833,7 @@ paths:
       summary: Download a report file
       operationId: downloadReport
       tags:
-        - Report Logs
+        - ModelCatalog
       parameters:
         - name: report_id
           in: path
