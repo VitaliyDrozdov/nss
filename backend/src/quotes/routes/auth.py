@@ -29,7 +29,7 @@ load_dotenv()
 def register(cur_user):
     """Регистрация новых пользователей."""
     email = request.json.get("email")
-    password = request.json.get("password")
+    password = request.json.get("password", "password")
     if not email or not password:
         return (
             jsonify(
@@ -94,7 +94,7 @@ def login():
         db.session.commit()
         admin_email = os.getenv("ADMIN_EMAIL", "admin@mail.ru")
         msg = Message(
-            "User Account Blockeds",
+            "User Account Blocked",
             sender="no-reply@neoscoring.com",
             recipients=[admin_email],
         )
@@ -110,6 +110,7 @@ def login():
             ),
             403,
         )
+    return jsonify({"message": "wrong password"})
 
 
 @bp.route("/logout", methods=["POST"])

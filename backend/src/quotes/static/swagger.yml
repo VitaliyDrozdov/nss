@@ -56,11 +56,11 @@ paths:
               properties:
                 email:
                   type: string
-                password:
-                  type: string
+                # password:
+                #   type: string
               required:
                 - email
-                - password
+                # - password
       responses:
         '201':
           description: User registered successfully
@@ -361,7 +361,6 @@ paths:
                     type: string
                     example: You do not have permission
 
-
     patch:
       summary: Обновление информации о пользователе
       tags:
@@ -376,42 +375,25 @@ paths:
           schema:
             type: integer
             example: 123
-        - name: new_username
-          required: false
-          in: query
-          description: Новый username
-          schema:
-            type: string
-        - name: password
-          required: false
-          in: query
-          description: Новый пароль
-          schema:
-            type: string
-        - name: first_name
-          required: false
-          in: query
-          description: Новое имя
-          schema:
-            type: string
-        - name: last_name
-          required: false
-          in: query
-          description: Новая фамилия
-          schema:
-            type: string
-        - name: is_blocked
-          required: false
-          in: query
-          description: Статус
-          schema:
-            type: boolean
-        - name: roles
-          required: false
-          in: query
-          description: Обновление ролей
-          schema:
-            type: string
+      requestBody:
+        description: Новый статус проверки.
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_username:
+                  type: string
+                is_blocked:
+                  type: boolean
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                roles:
+                  type: list
+
       responses:
         '200':
           description: Данные обновлены
@@ -1833,7 +1815,7 @@ paths:
       summary: Download a report file
       operationId: downloadReport
       tags:
-        - ModelCatalog
+        - Monitoring
       parameters:
         - name: report_id
           in: path
