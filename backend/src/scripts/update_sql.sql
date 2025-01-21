@@ -628,3 +628,14 @@ and dm.feature_name in ('driver_region', 'driver_age')
 
 ALTER TABLE model_monitoring.report_log
 ADD COLUMN file varchar(255);
+
+
+
+insert into dwh.data_mart(product_type,run_id,quote_id,briefcase_date,start_date,end_date,model_name,feature_name,feature_value,predict,is_insurance_case,data_insurance_case)
+values
+    ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name1','value',0.20,true,to_date('2024-06-15','yyyy-mm-dd')),
+    ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name3','value',0.20,true,to_date('2024-06-15','yyyy-mm-dd')),
+    ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name5','value',0.20,true,to_date('2024-06-15','yyyy-mm-dd')),
+    ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name2','value',0.20,False,null),
+    ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name6','value',0.20,False,null),
+    ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name10','value',0.20,False,null)
