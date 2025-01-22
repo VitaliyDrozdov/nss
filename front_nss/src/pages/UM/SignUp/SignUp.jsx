@@ -36,9 +36,13 @@ const AccountManagement = () => {
   ]);
 
   const getUsers = async () => {
+    const params = new URLSearchParams();
+
+    params.append("page", 1);
+    params.append("per_page", 10);
     
-      const response = api.get("/auth/admin/users");
-      console.log(response.data);
+    const response = await api.get(`/auth/admin/users?${params.toString()}`);
+    setAccounts(response.data.users);
   };
 
   const password = "test"
@@ -50,10 +54,7 @@ const AccountManagement = () => {
         throw new Error("Ошибка регистрации пользователя");
       }
 
-      setAccounts([
-        ...accounts,
-        { account: email, date: new Date().toLocaleDateString(), role },
-      ]);
+      getUsers();
 
       setEmail("");
       setRole("");

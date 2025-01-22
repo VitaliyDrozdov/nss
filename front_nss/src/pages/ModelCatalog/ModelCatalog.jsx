@@ -1,16 +1,41 @@
 import React, { useState } from "react";
-import { Box, Grid, Card, CardContent, Typography, Switch, Button } from "@mui/material";
+import { Box, Grid, Card, CardContent, Typography, Switch, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, TextField, FormControlLabel } from "@mui/material";
 import Header from "../../components/Header";
+import api from "../../utils/api";
+
 
 const ModelCatalog = () => {
-    const [models, setModels] = useState([
-        { id: 1, name: "Название модели 1", status: false },
-        { id: 2, name: "Название модели 2", status: true },
-        { id: 3, name: "Название модели 3", status: true },
-        { id: 4, name: "Название модели 4", status: false },
-        { id: 5, name: "Название модели 5", status: false },
-        { id: 6, name: "Название модели 6", status: false },
-    ]);
+    const [models, setModels] = useState([]);
+    const [formData, setFormData] = useState({
+        model_name: "",
+        product_code: "",
+        status: false,
+        model_version: "1.0",
+        model_description: ""
+    });
+
+    const [open, setOpen] = useState(false);
+
+    const handleChange = (field, value) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const handleOpenDialog = () => {
+        setOpen(true);
+    };
+
+    const handleCloseDialog = () => {
+        setOpen(false);
+    };
+
+    const getModels = async () => {
+        const params = new URLSearchParams();
+        params.append("page", 1);
+        params.append("per_page", 10);
+        const response = await api.get(`/model_catalog/?${params.toString()}`);
+        setModels(response.data.data);
+        console.log(models);
+    };
 
     const SwitchStyle = {
         width: 80,
@@ -45,20 +70,53 @@ const ModelCatalog = () => {
     const handleToggle = (id) => {
         setModels((prevModels) =>
             prevModels.map((model) =>
-                model.id === id ? { ...model, status: !model.status } : model
+                model.model_id === id ? { ...model, status: !model.status } : model
             )
         );
     };
 
+    const handleCreation = async () => {
+        try {
+
+            const dataToSend = {
+                model_name: formData.model_name,
+                product_code: "prod002",
+                status: false,
+                model_version: "1.0",
+                model_description: formData.model_description
+
+            };
+
+
+            const response = await api.post("/model_catalog/", dataToSend);
+            console.log("Успешное создание модели:", response.data);
+
+
+            setFormData({
+                model_name: "",
+                product_code: "",
+                status: false,
+                model_version: "1.0",
+                model_description: ""
+            });
+            getModels();
+
+            handleCloseDialog();
+        } catch (error) {
+            console.error("Ошибка при создании инцидента:", error);
+        }
+    };
+
+    React.useEffect(() => {
+        getModels();
+    }, []);
+
     return (
         <>
-            <Header title="Каталог моделей" sx={{marginLeft: 3}}/>
-
-
-
+            <Header title="Каталог моделей" sx={{ marginLeft: 3 }} />
             <Box sx={{ padding: 3, backgroundColor: "#1A202C", minHeight: "100vh", color: "#fff" }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
-                    <Button variant="contained" sx={{ backgroundColor: "#7e6fd3" }}>
+                    <Button variant="contained" sx={{ backgroundColor: "#7e6fd3" }} onClick={handleOpenDialog}>
                         Добавить новую модель
                     </Button>
                 </Box>
@@ -67,7 +125,7 @@ const ModelCatalog = () => {
                         <Grid item xs={12} sm={6} md={4} key={model.id}>
                             <Card sx={{ backgroundColor: "#2D3748", color: "#fff" }}>
                                 <CardContent>
-                                    <Typography variant="h4">{model.name}</Typography>
+                                    <Typography variant="h4">{model.model_name}</Typography>
                                     <Typography variant="body2" color="textSecondary" sx={{ marginBottom: 2 }}>
                                         Продукт
                                     </Typography>
@@ -77,7 +135,7 @@ const ModelCatalog = () => {
                                     <Switch
                                         checked={model.status}
                                         sx={SwitchStyle}
-                                        onChange={() => handleToggle(model.id)}
+                                        onChange={() => handleToggle(model.model_id)}
                                     />
                                 </CardContent>
                             </Card>
@@ -85,6 +143,78 @@ const ModelCatalog = () => {
                     ))}
                 </Grid>
             </Box>
+
+            {/* Модальное окно */}
+            <Dialog open={open} onClose={handleCloseDialog} fullWidth maxWidth="md" >
+                <DialogTitle><Typography variant="h3">Добавление новой модели</Typography></DialogTitle>
+                <DialogContent>
+                    <Box display="grid" gap={2}>
+                        <Box display="flex">
+                            <Box width={400} height={53} bgcolor="#2b2b3d" p={2}>
+                                <Typography variant="h5" sx={{ color: "#fff", marginBottom: 1 }}>
+                                    Название модели
+                                </Typography>
+                            </Box>
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={1}
+                                value={formData.model_name}
+                                onChange={(e) => handleChange("model_name", e.target.value)}
+                            />
+
+                        </Box>
+                        <Box display="flex">
+                            <Box width={400} height={53} bgcolor="#2b2b3d" p={2}>
+                                <Typography variant="h5" sx={{ color: "#fff", marginBottom: 1 }}>
+                                    Тип продукта
+                                </Typography>
+
+                            </Box>
+                            <Select
+                                fullWidth
+                                value={formData.product_code}
+                                onChange={(e) => handleChange("product_code", e.target.value)}
+                            >
+                                <MenuItem value="OSAGO">ОСАГО</MenuItem>
+                                <MenuItem value="LIFE">Страхование жизни</MenuItem>
+                            </Select>
+                        </Box>
+                        <Box display="flex">
+                            <Box width={400} bgcolor="#2b2b3d" p={2}>
+                                <Typography variant="h5" sx={{ color: "#fff", marginBottom: 1 }}>
+                                    Описание модели
+                                </Typography>
+                            </Box>
+                            <TextField
+                                fullWidth
+                                multiline
+                                rows={3}
+                                value={formData.model_description}
+                                onChange={(e) => handleChange("model_description", e.target.value)}
+                            />
+                        </Box>
+                    </Box>
+                </DialogContent>
+                <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    px={3}
+                    py={1}
+                    bgcolor="#2b2b3d"
+                >
+
+                    <DialogActions>
+                        <Button onClick={handleCloseDialog} color="third">
+                            Отмена
+                        </Button>
+                        <Button onClick={handleCreation} color="secondary" variant="contained">
+                            Создать модель
+                        </Button>
+                    </DialogActions>
+                </Box>
+            </Dialog>
         </>
     );
 };

@@ -1,10 +1,11 @@
 import React from 'react';
-import { TextField, Button, Box, Select, MenuItem, InputLabel, FormControl, Modal, Typography } from '@mui/material';
+import { TextField, Button, Box, Select, MenuItem, InputLabel, FormControl, Modal, Typography, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+
 import { Formik, Form, FieldArray, Field } from 'formik';
 import * as Yup from 'yup';
+import api from "../../utils/api";
 
-//адрес вашего эндпоинта, который будет принимать запросы из формы
-const address = 'http://localhost:5000/api/quote';
+
 
 const style = {
   position: 'absolute',
@@ -12,6 +13,7 @@ const style = {
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: 600,
+  height: 150,
   bgcolor: 'background.paper',
   border: '2px solid #000',
   boxShadow: 24,
@@ -27,7 +29,7 @@ const initialValues = {
     },
     product: {
       productType: 'osago',
-      productCode: '0',
+      productCode: 'prod001',
     },
     subjects: [
       {
@@ -123,39 +125,19 @@ const Page = () => {
     }),
   });
 
-  const handleSubmit = (values) => {
-    const params = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(values)
+  const handleSubmit = async (values) => {
+  try {
+    const response = await api.post('/quote', values);
+
+    if (response.status === 200) {
+      handleOpen(response.data)
     }
-
-    fetch(address, params)
-      .then(response => {
-        console.log(response)
-        if (response.status === 400) {
-          throw new Error("Необходимо заполнить все поля формы для получения предсказания");
-        }
-        else if (response.status === 500) {
-          throw new Error("Сервер недоступен");
-        }
-        return response.json()
-      })
-      .then(data => {
-        handleOpen(data)
-        return data;
-      })
-      .catch(error => {
-        if (error.message === "Failed to fetch") {
-          handleOpenError("Сервер недоступен. Невозможно выполнить запрос.");
-        } else {
-          handleOpenError(error.message);
-        }
-      });
-
+  } catch (error) {
+    handleOpenError((error.response.data.detals ?? "Ошибка") + ": " + error.response.data.error)
+  }
   };
+
+
 
   return (
     <Box m="20px">
@@ -180,9 +162,10 @@ const Page = () => {
       <Modal
         open={IsOpenError}
         onClose={handleCloseError}>
-        <Box sx={style}>
-          <p>{error_message}</p>
-          <Button onClick={handleCloseError} color="secondary">Close</Button>
+        <Box sx={style} display={"grid"}>
+          <Typography variant='h5' marginBottom={"auto"}>{error_message}</Typography>
+
+          <Button onClick={handleCloseError} color="secondary" >Close</Button>
         </Box>
       </Modal>
 
@@ -213,8 +196,6 @@ const Page = () => {
               helperText={touched.quote?.header?.runId && errors.quote?.header?.runId}
 
             />
-
-
 
             <Field
               name="quote.header.quoteId"
@@ -445,7 +426,7 @@ const Page = () => {
             >
 
 
-              <Button type="submit" color="third" variant="contained" >
+              <Button type="submit" color="third" variant="contained" onClick={handleSubmit}>
                 Submit
               </Button>
             </Box>

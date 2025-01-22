@@ -1,19 +1,17 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useNavigate } from 'react-router-dom';
 
 import { usePermify } from '@permify/react-role';
 
-import { Box, Button, TextField, useTheme } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 
 import { Formik } from "formik";
 import * as yup from "yup";
 
-import { ColorModeContext } from "../../../hooks/useTheme";
 import { useAuth } from "../../../hooks/useAuth"; 
 
 const SignInForm = () => {
-  const theme = useTheme();
-  const colorMode = useContext(ColorModeContext);
+
   const  { login } = useAuth();
   const { setUser } = usePermify();
 

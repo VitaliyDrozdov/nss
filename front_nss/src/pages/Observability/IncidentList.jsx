@@ -28,8 +28,8 @@ const IncidentTable = () => {
   const [selected, setSelected] = useState([]);
   const [order, setOrder] = useState("asc");
   const [data, setData] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const page = 0;
+  const rowsPerPage = 50;
   const [orderBy, setOrderBy] = useState("incident_id");
   const [formData, setFormData] = useState({
     service: "",
