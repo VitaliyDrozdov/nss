@@ -431,9 +431,9 @@ def get_check_history(user):
 
 
 @bp.route("/<int:check_id>", methods=["GET", "DELETE", "PATCH"])
-# @token_required
-# @admin_required
-def handle_check_dq(check_id):
+@token_required
+@admin_required
+def handle_check_dq(user, check_id):
     """
     Эндпоинт для получения, удаления записи из истории проверок
     или изменения статуса проверки.

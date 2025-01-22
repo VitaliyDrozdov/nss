@@ -179,7 +179,7 @@ def create_incident(user):
         db.session.close()
 
 
-@bp.route("/<int:id_incident>", methods=["PUT"])
+@bp.route("/<int:id_incident>", methods=["PUT", "DELETE"])
 @token_required
 def update_incident(user, id_incident):
     VALID_STATES = ["Active", "In Progress", "Resolved"]
@@ -187,65 +187,79 @@ def update_incident(user, id_incident):
     data = request.json
     try:
         select_query = "SELECT id_incident FROM observability.incidents WHERE id_incident = :id_incident"  # noqa
-        result = db.session.execute(
+        incident = db.session.execute(
             text(select_query), {"id_incident": id_incident}
         ).fetchone()
-
-        if not result:
+        if not incident:
             return jsonify({"error": "Incident not found"}), 404
-        if (
-            not data.get("state")
-            or not data.get("priority")
-            or not data.get("service")
-            or not data.get("trace_id")
-        ):
-            return jsonify({"error": "Missing required fields"}), 400
-        update_query = """
-        UPDATE observability.incidents
-        SET state = :state,
-            priority = :priority,
-            description = :description,
-            last_updated = :last_updated,
-            service = :service,
-            trace_id = :trace_id
-        WHERE id_incident = :id_incident
-        """
+        if request.method == "PUT":
+            if (
+                not data.get("state")
+                or not data.get("priority")
+                or not data.get("service")
+                or not data.get("trace_id")
+            ):
+                return jsonify({"error": "Missing required fields"}), 400
+            update_query = """
+            UPDATE observability.incidents
+            SET state = :state,
+                priority = :priority,
+                description = :description,
+                last_updated = :last_updated,
+                service = :service,
+                trace_id = :trace_id
+            WHERE id_incident = :id_incident
+            """
 
-        params = {
-            "state": data.get("state"),
-            "priority": data.get("priority"),
-            "description": data.get("description"),
-            "last_updated": datetime.utcnow(),
-            "service": data.get("service"),
-            "trace_id": data.get("trace_id"),
-            "id_incident": id_incident,
-        }
+            params = {
+                "state": data.get("state"),
+                "priority": data.get("priority"),
+                "description": data.get("description"),
+                "last_updated": datetime.utcnow(),
+                "service": data.get("service"),
+                "trace_id": data.get("trace_id"),
+                "id_incident": id_incident,
+            }
 
-        if params.get("state") not in VALID_STATES:
+            if params.get("state") not in VALID_STATES:
+                return (
+                    jsonify(
+                        {
+                            "error": f"Invalid state. Valid values are {', '.join(VALID_STATES)}."  # noqa
+                        }
+                    ),
+                    400,
+                )
+            if params.get("priority") not in VALID_PRIORITIES:
+                return (
+                    jsonify(
+                        {
+                            "error": f"Invalid priority. Valid values are {', '.join(VALID_PRIORITIES)}."  # noqa
+                        }
+                    ),
+                    400,
+                )
+            db.session.execute(text(update_query), params)
+            db.session.commit()
+
             return (
                 jsonify(
-                    {
-                        "error": f"Invalid state. Valid values are {', '.join(VALID_STATES)}."  # noqa
-                    }
+                    {"message": "Incident updated", "incident": id_incident}
                 ),
-                400,
+                200,
             )
-        if params.get("priority") not in VALID_PRIORITIES:
-            return (
-                jsonify(
-                    {
-                        "error": f"Invalid priority. Valid values are {', '.join(VALID_PRIORITIES)}."  # noqa
-                    }
-                ),
-                400,
-            )
-        db.session.execute(text(update_query), params)
-        db.session.commit()
 
-        return (
-            jsonify({"message": "Incident updated", "incident": id_incident}),
-            200,
-        )
+        elif request.method == "DELETE":
+            delete_query = """
+            DELETE FROM observability.incidents
+            WHERE id_incident = :id_incident
+            """
+            db.session.execute(
+                text(delete_query), {"id_incident": id_incident}
+            )
+            db.session.commit()
+            return jsonify({"message": "Incident deleted successfully"}), 204
+
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
