@@ -145,11 +145,11 @@ const Page = () => {
         open={IsOpen}
         onClose={handleClose}
       >
-        <Box sx={style}>
-          <Typography id="Modal-quote" variant="h6" component="h2">
+        <Box sx={style} display={"grid"}>
+          <Typography variant="h6" component="h2">
             Предсказание
           </Typography>
-          <Typography id="modal-quote-details" sx={{ mt: 2 }}>
+          <Typography  sx={{ mt: 2 }}>
             <p>Predict Percent: {data.predict.percent}</p>
             <p>Predict Score: {data.predict.score}</p>
 

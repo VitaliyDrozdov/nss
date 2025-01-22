@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { Tab, Tabs, Box, Switch, Typography } from '@mui/material';
+import api from "../../utils/api";
+import React, { useState } from "react";
+import {
+  Box,
+  Tabs,
+  Tab,
+  Typography,
+  Switch,
+} from "@mui/material";
+
 
 const QualityControl = () => {
   const [value, setValue] = useState('osago');
@@ -9,55 +17,62 @@ const QualityControl = () => {
   };
 
   const [groupOsagoSwitches, setGroupOsagoSwitches] = useState({
-    0: [false, false, false],
+    0: [false],
     1: [false, false, false],
   });
 
   const [groupLifeSwitches, setGroupLifeSwitches] = useState({
-    0: [false, false, false],
+    0: [false],
     1: [false, false, false],
   });
 
-  const toggleGroupOsago = (groupIndex, checked) => {
-    setGroupOsagoSwitches((prev) => ({
-      ...prev,
-      [groupIndex]: prev[groupIndex].map(() => checked),
-    }));
+  const updateDQCheck = async (checkType, productType, condition) => {
+    try {
+      await api.put(`/dq/manage`, {
+        check_type: checkType,
+        product_type: productType,
+        condition,
+      });
+    } catch (error) {
+      console.error("Ошибка при отправке PATCH запроса:", error);
+      throw error;
+    }
   };
 
-  const toggleCheckOsago = (groupIndex, checkIndex, checked) => {
-    setGroupOsagoSwitches((prev) => ({
-      ...prev,
-      [groupIndex]: prev[groupIndex].map((state, idx) =>
-        idx === checkIndex ? checked : state
-      ),
-    }));
-  };
+  const toggleCheck = async (groupIndex, checkIndex, productType, checked) => {
+    const checkType = groupIndex === 0 ? "DQ1" : `DQ2.${checkIndex + 1}`;
 
-  const toggleGroupLife = (groupIndex, checked) => {
-    setGroupLifeSwitches((prev) => ({
-      ...prev,
-      [groupIndex]: prev[groupIndex].map(() => checked),
-    }));
-  };
+    try {
+      await updateDQCheck(checkType, productType, checked);
 
-  const toggleCheckLife = (groupIndex, checkIndex, checked) => {
-    setGroupLifeSwitches((prev) => ({
-      ...prev,
-      [groupIndex]: prev[groupIndex].map((state, idx) =>
-        idx === checkIndex ? checked : state
-      ),
-    }));
+      if (productType === 'osago') {
+        setGroupOsagoSwitches((prev) => ({
+          ...prev,
+          [groupIndex]: prev[groupIndex].map((state, idx) =>
+            idx === checkIndex ? checked : state
+          ),
+        }));
+      } else {
+        setGroupLifeSwitches((prev) => ({
+          ...prev,
+          [groupIndex]: prev[groupIndex].map((state, idx) =>
+            idx === checkIndex ? checked : state
+          ),
+        }));
+      }
+    } catch (error) {
+      console.error("Ошибка при отправке PUT запроса:", error);
+    }
   };
 
   const groups = [
     {
-      title: 'ПРОВЕРКИ DQ 1',
-      checks: ['проверка 1', 'проверка 2', 'проверка 3'],
+      title: 'ПРОВЕРКА DQ 1',
+      checks: ['Проверка по json-схеме'],
     },
     {
       title: 'ПРОВЕРКИ DQ 2',
-      checks: ['проверка 1', 'проверка 2', 'проверка 3'],
+      checks: ['проверка 2.1', 'проверка 2.2', 'проверка 2.3'],
     },
   ];
 
@@ -65,13 +80,11 @@ const QualityControl = () => {
     width: 80,
     height: 40,
     padding: 0,
-    marginRight: 40,
-
+    marginRight: 10,
     '& .MuiSwitch-switchBase': {
       padding: 0,
       marginTop: 'auto',
       marginBottom: 'auto',
-
       '&.Mui-checked': {
         transform: 'translateX(40px)',
         color: '#7e6fd3',
@@ -84,12 +97,11 @@ const QualityControl = () => {
     '& .MuiSwitch-track': {
       borderRadius: 15,
       backgroundColor: '#acaed1',
-
     },
     '& .Mui-checked + .MuiSwitch-track': {
       backgroundColor: '#acaed1',
     }
-  }
+  };
 
   return (
     <Box sx={{ width: '70%', marginLeft: 'auto', marginRight: 'auto', marginTop: 4 }}>
@@ -111,11 +123,6 @@ const QualityControl = () => {
             <Box key={groupIndex}>
               <Box display="flex" justifyContent="space-between" sx={{ marginLeft: 2, marginTop: 5 }}>
                 <Typography sx={{ fontSize: "25px", fontWeight: "bold" }}>{group.title}</Typography>
-                <Switch
-                  sx={SwitchStyle}
-                  checked={groupOsagoSwitches[groupIndex].every((state) => state)}
-                  onChange={(e) => toggleGroupOsago(groupIndex, e.target.checked)}
-                />
               </Box>
 
               {group.checks.map((check, checkIndex) => (
@@ -130,7 +137,7 @@ const QualityControl = () => {
                     sx={SwitchStyle}
                     checked={groupOsagoSwitches[groupIndex][checkIndex]}
                     onChange={(e) =>
-                      toggleCheckOsago(groupIndex, checkIndex, e.target.checked)
+                      toggleCheck(groupIndex, checkIndex, 'osago', e.target.checked)
                     }
                   />
                 </Box>
@@ -143,11 +150,6 @@ const QualityControl = () => {
             <Box key={groupIndex}>
               <Box display="flex" justifyContent="space-between" sx={{ marginLeft: 2, marginTop: 5 }}>
                 <Typography sx={{ fontSize: "25px", fontWeight: "bold" }}>{group.title}</Typography>
-                <Switch
-                  sx={SwitchStyle}
-                  checked={groupLifeSwitches[groupIndex].every((state) => state)}
-                  onChange={(e) => toggleGroupLife(groupIndex, e.target.checked)}
-                />
               </Box>
 
               {group.checks.map((check, checkIndex) => (
@@ -162,7 +164,7 @@ const QualityControl = () => {
                     sx={SwitchStyle}
                     checked={groupLifeSwitches[groupIndex][checkIndex]}
                     onChange={(e) =>
-                      toggleCheckLife(groupIndex, checkIndex, e.target.checked)
+                      toggleCheck(groupIndex, checkIndex, 'life', e.target.checked)
                     }
                   />
                 </Box>

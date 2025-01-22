@@ -119,7 +119,7 @@ const DataMart = () => {
               >
                 <MenuItem value="">Все продукты</MenuItem>
                 <MenuItem value="ОСАГО">ОСАГО</MenuItem>
-                <MenuItem value="СТРАХОВАНИЕ ЖИЗНИ">Страхование жизни</MenuItem>
+                <MenuItem value="LIFE">Страхование жизни</MenuItem>
               </Select>
             </FormControl>
           </Grid>

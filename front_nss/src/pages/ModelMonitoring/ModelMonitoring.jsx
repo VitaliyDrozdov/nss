@@ -1,9 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import {
   Box,
   Button,
   Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControlLabel,
   MenuItem,
   Select,
@@ -13,25 +17,48 @@ import {
 import api from "../../utils/api";
 
 const ModelMonitoring = () => {
+  const [openDialog, setOpenDialog] = useState(false);
+  const [fileUrl, setFileUrl] = useState("");
 
   const fetchData = async (values) => {
     try {
-      const params = new URLSearchParams();
+      const dataToSend = {
+        model_name: values.model,
+        metric_name: values.metric,
+        monitoring_type: "On-demand",
+        time_period: values.reportPeriod,
+      };
 
-      if (values.model) params.append("model_name", values.model);
-      if (values.metric) params.append("metric_name", values.metri);
+      const response = await api.post(`/monitoring/create`, dataToSend);
+      if (response.status === 201) {
+        const fileResponse = await api.get(`/monitoring/download/${response.data.id}`, {
+          responseType: "blob", // Получаем файл в формате blob
+        });
 
-      const response = await api.get(`/dwh/?${params.toString()}`);
-
-      
-
-      
-      console.log(response.data.data);
+        // Создаём URL для файла
+        const url = window.URL.createObjectURL(new Blob([fileResponse.data]));
+        setFileUrl(url); // Сохраняем URL для дальнейшего использования
+        setOpenDialog(true); // Открываем диалог
+      }
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
     }
   };
 
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.setAttribute("download", "report.csv"); // Имя скачиваемого файла
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setOpenDialog(false); // Закрываем диалог
+  };
+
+  const handleView = () => {
+    window.open(fileUrl, "_blank"); // Открываем файл в новой вкладке
+    setOpenDialog(false); // Закрываем диалог
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -42,14 +69,9 @@ const ModelMonitoring = () => {
       email: "",
     },
     onSubmit: (values) => {
-      console.log("Form values:", values);
+      fetchData(values);
     },
   });
-
-  
-
-
-
 
   return (
     <Box
@@ -65,13 +87,13 @@ const ModelMonitoring = () => {
     >
       <Typography
         variant="h2"
-        sx={{  marginBottom: "20px", textAlign: "center", fontWeight: "bold" }}
+        sx={{ marginBottom: "20px", textAlign: "center", fontWeight: "bold" }}
       >
         Введите данные для расчета
       </Typography>
 
       <form onSubmit={formik.handleSubmit}>
-        
+        {/* Период отчета */}
         <Box sx={{ marginBottom: "20px" }}>
           <Typography variant="h4" sx={{ color: "#fff", marginBottom: "5px" }}>
             Период отчета
@@ -92,7 +114,7 @@ const ModelMonitoring = () => {
           </Select>
         </Box>
 
-        
+        {/* Модель */}
         <Box sx={{ marginBottom: "20px" }}>
           <Typography variant="h4" sx={{ color: "#fff", marginBottom: "5px" }}>
             Модель
@@ -108,12 +130,12 @@ const ModelMonitoring = () => {
               color: "#fff",
             }}
           >
-            <MenuItem value="model1">Модель 1</MenuItem>
-            <MenuItem value="model2">Модель 2</MenuItem>
+            <MenuItem value="osago">ОСАГО</MenuItem>
+            <MenuItem value="life">Страхование жизни</MenuItem>
           </Select>
         </Box>
 
-        
+        {/* Метрика */}
         <Box sx={{ marginBottom: "20px" }}>
           <Typography variant="h4" sx={{ color: "#fff", marginBottom: "5px" }}>
             Метрика
@@ -129,12 +151,13 @@ const ModelMonitoring = () => {
               color: "#fff",
             }}
           >
-            <MenuItem value="metric1">Метрика 1</MenuItem>
-            <MenuItem value="metric2">Метрика 2</MenuItem>
+            <MenuItem value="Metric 1">Метрика 1</MenuItem>
+            <MenuItem value="Metric 2">Метрика 2</MenuItem>
+            <MenuItem value="Metric 3">Метрика 3</MenuItem>
           </Select>
         </Box>
 
-        
+        {/* Отправить на почту */}
         <Box sx={{ marginBottom: "20px" }}>
           <FormControlLabel
             control={
@@ -148,13 +171,12 @@ const ModelMonitoring = () => {
             }
             label={
               <Typography sx={{ color: "#fff" }}>
-                Отправить отчет на почту
+                Отправить отчет на почту(разработка в процессе)
               </Typography>
             }
           />
         </Box>
 
-        
         {formik.values.sendEmail && (
           <Box sx={{ marginBottom: "20px" }}>
             <TextField
@@ -173,7 +195,6 @@ const ModelMonitoring = () => {
           </Box>
         )}
 
-        
         <Button
           fullWidth
           type="submit"
@@ -181,12 +202,26 @@ const ModelMonitoring = () => {
           color="secondary"
         >
           <Typography variant="h5">Сформировать отчет</Typography>
-          
         </Button>
       </form>
+
+      {/* Диалог для выбора действия */}
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Скачать или открыть отчет</DialogTitle>
+        <DialogContent>
+          <Typography>Выберите действие с отчетом:</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDownload} color="primary" variant="contained">
+            Скачать
+          </Button>
+          <Button onClick={handleView} color="secondary" variant="outlined">
+            Просмотреть
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
-
 
 export default ModelMonitoring;

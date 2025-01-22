@@ -67,12 +67,22 @@ const ModelCatalog = () => {
         }
     };
 
-    const handleToggle = (id) => {
-        setModels((prevModels) =>
-            prevModels.map((model) =>
-                model.model_id === id ? { ...model, status: !model.status } : model
-            )
+    const handleToggle = async (name) => {
+        const updatedModels = models.map((model) =>
+            model.model_name === name ? { ...model, status: !model.status } : model
         );
+    
+        const updatedModel = updatedModels.find((model) => model.model_name === name);
+    
+        try {
+            await api.put(`/model_catalog/${updatedModel.model_name}`, {
+                status: updatedModel.status,
+            });
+    
+            setModels(updatedModels);
+        } catch (error) {
+            console.error("Ошибка при обновлении статуса модели:", error);
+        }
     };
 
     const handleCreation = async () => {
@@ -135,7 +145,7 @@ const ModelCatalog = () => {
                                     <Switch
                                         checked={model.status}
                                         sx={SwitchStyle}
-                                        onChange={() => handleToggle(model.model_id)}
+                                        onChange={() => handleToggle(model.model_name)}
                                     />
                                 </CardContent>
                             </Card>

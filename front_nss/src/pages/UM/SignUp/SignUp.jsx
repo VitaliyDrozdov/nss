@@ -17,7 +17,9 @@ import {
   TableSortLabel,
   IconButton,
   Tabs,
-  Tab
+  Tab,
+  Modal,
+  Typography
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import api from "../../../utils/api";
@@ -29,11 +31,20 @@ const AccountManagement = () => {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("account");
   const [tab, setTab] = useState(0);
-  const [accounts, setAccounts] = useState([
-    { account: "Учётная запись 1", date: "Дата создания 1", role: "Администратор" },
-    { account: "Учётная запись 2", date: "Дата создания 2", role: "Редактор" },
-    { account: "Учётная запись 3", date: "Дата создания 3", role: "Пользователь" },
-  ]);
+  const [accounts, setAccounts] = useState([]);
+  const [IsOpenError, setOpenError] = React.useState(false);
+  const [error_message, setErrorMessage] = React.useState("");
+
+
+  const handleCloseError = () => setOpenError(false);
+
+  const handleOpenError = (error) => {
+    setErrorMessage(error)
+    setOpenError(true)
+  };
+
+  
+
 
   const getUsers = async () => {
     const params = new URLSearchParams();
@@ -45,22 +56,22 @@ const AccountManagement = () => {
     setAccounts(response.data.users);
   };
 
-  const password = "test"
   const handleCreateAccount = async () => {
     try {
-      const response = await api.post("/auth/register", { email, password });
+      const response = await api.post("/auth/register", { email });
 
-      if (response.status !== 200) {
+      if (response.status !== 201) {
         throw new Error("Ошибка регистрации пользователя");
       }
+      setEmail("");
+      setRole("");
 
       getUsers();
 
-      setEmail("");
-      setRole("");
+
       
     } catch (error) {
-      console.error("Произошла ошибка при регистрации пользователя:", error);
+      handleOpenError((error.response.data.detals ?? "Ошибка") + ": " + error.response.data.error);
     }
   };
 
@@ -73,14 +84,29 @@ const AccountManagement = () => {
 
   const sortedAccounts = [...accounts].sort((a, b) => {
     if (order === "asc") {
-      return a[orderBy].localeCompare(b[orderBy]);
+      return a[orderBy] > b[orderBy] ? 1 : -1;
     }
-    return b[orderBy].localeCompare(a[orderBy]);
+    return a[orderBy] < b[orderBy] ? 1 : -1;
   });
 
-  const filteredAccounts = sortedAccounts.filter((account) =>
-    account.account.toLowerCase().includes(search.toLowerCase())
-  );
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 600,
+    height: 150,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+
+
+
+    React.useEffect(() => {
+      getUsers();
+    }, []);
 
   return (
     <Box sx={{ p: 3, backgroundColor: "#2e3440", minHeight: "100vh", color: "#fff" }}>
@@ -201,11 +227,11 @@ const AccountManagement = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredAccounts.map((row, index) => (
+                {sortedAccounts.map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell sx={{ color: "#eceff4" }}>{row.account}</TableCell>
-                    <TableCell sx={{ color: "#eceff4" }}>{row.date}</TableCell>
-                    <TableCell sx={{ color: "#eceff4" }}>{row.role}</TableCell>
+                    <TableCell sx={{ color: "#eceff4" }}>{row.email}</TableCell>
+                    <TableCell sx={{ color: "#eceff4" }}>{row.created_at}</TableCell>
+                    <TableCell sx={{ color: "#eceff4" }}>{row.roles}</TableCell>
                     <TableCell>
                       <Button
                         variant="text"
@@ -221,6 +247,16 @@ const AccountManagement = () => {
           </TableContainer>
         </>
       )}
+
+<Modal
+        open={IsOpenError}
+        onClose={handleCloseError}>
+        <Box sx={style} display={"grid"}>
+          <Typography variant='h5' marginBottom={"auto"}>{error_message}</Typography>
+
+          <Button onClick={handleCloseError} color="secondary" >Close</Button>
+        </Box>
+      </Modal>
     </Box>
   );
 };
