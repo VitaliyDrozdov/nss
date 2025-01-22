@@ -600,7 +600,7 @@ def get_models(user):
     WHERE 1=1
     """
     try:
-        result = db.session.execute(text(query))
+        result = db.session.execute(text(query)).mappings()
         rows = [dict(row) for row in result]
         db.session.commit()
         return (
