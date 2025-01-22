@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from pydantic import ValidationError
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from quotes.config import db
@@ -94,7 +95,6 @@ def validate_check_type(check_type, product_code):
         return jsonify({"error": "Проверка не найдена в БД."}), 400
 
 
-# @bp.route("/dq1", methods=["POST"])
 def dq1(data=None):
     if data is None:
         data = request.get_json()
@@ -148,7 +148,6 @@ def dq1(data=None):
         )
 
 
-# @bp.route("/product", methods=["POST"])
 def dq2(data=None):
     if data is None:
         data = request.get_json()
@@ -172,30 +171,6 @@ def dq2(data=None):
     )
     # 2.1 Проверка продукта
     if check_status is True:
-        # product_exists = (
-        #     db.session.query(Products)
-        #     .filter(Products.product_type == product_type)
-        #     .first()
-        # )
-        # if not product_exists:
-        #     log_check_history(
-        #         check_id=check.check_id,
-        #         product_type=product_type,
-        #         status=False,
-        #         runId=runId,
-        #     )
-        #     return (
-        #         jsonify(
-        #             {
-        #                 "error": "Расчет скорингового балла по данному "
-        #                 "страховому продукту не предусмотрен в системе.",
-        #                 "details": f"productCode '{product_code}'.",
-        #             }
-        #         ),
-        #         400,
-        #     )
-
-        # Проверка наличия типа продукта в таблице products
         product_type_exists = (
             db.session.query(Products)
             .filter(Products.product_type == product_type)
@@ -612,3 +587,28 @@ def manage_checks(user):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/checks", methods=["GET"])
+@token_required
+@admin_required
+def get_models(user):
+    query = """
+    SELECT c.check_id as id, c.type, cp.product_code, cp.condition
+    FROM "dq.checks" c
+    JOIN "dq.check_product_status" cp USING(check_id)
+    WHERE 1=1
+    """
+    try:
+        result = db.session.execute(text(query))
+        rows = [dict(row) for row in result]
+        db.session.commit()
+        return (
+            jsonify(rows),
+            200,
+        )
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.session.close()
