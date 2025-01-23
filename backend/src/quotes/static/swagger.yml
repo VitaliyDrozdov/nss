@@ -37,6 +37,16 @@ paths:
                   error:
                     type: string
                     example: You do not have permission
+        '202':
+          description: Невозможно проверить входящие данные.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Проверка DQ1 выключена.
 
 
   /api/auth/register:
@@ -1830,6 +1840,7 @@ paths:
                     - lastWeek
                     - lastMonth
                     - lastYear
+                    - last3Months
                   example: lastMonth
       responses:
         '201':

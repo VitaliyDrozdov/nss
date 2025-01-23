@@ -11,39 +11,9 @@ from quotes.models.auth import Role, User, db
 load_dotenv()
 
 
-# def create_admin():
-#     """Скрипт создания админа после запуска приложения."""
-
-#     admin_role = Role.query.filter_by(name="admin").first()
-#     if not admin_role:
-#         admin_role = Role(name="admin")
-#         db.session().add(admin_role)
-#         db.session.commit()
-#         return "Admin user already exists"
-
-
-#     admin_password = os.getenv("ADMIN_PASSWORD")
-#     admin_user = User.query.filter_by(email=os.getenv("ADMIN_EMAIL")).first()
-#     if not admin_user:
-#         hashed_password = generate_password_hash(admin_password)
-#         admin_user = User(
-#             email=os.getenv("ADMIN_EMAIL"), password=hashed_password
-#         )
-#         admin_user.roles.append(admin_role)
-#         admin_user.generate_token()
-#         db.session.add(admin_user)
-#         db.session.commit()
-#         return "Admin user created with default values"
 def create_admins():
     """Скрипт создания админа после запуска приложения."""
-
     admin_role = Role.query.filter_by(name="admin").first()
-    if not admin_role:
-        admin_role = Role(name="admin")
-        db.session().add(admin_role)
-        db.session.commit()
-        # return "Admin user already exists"
-
     admin_emails = os.getenv("ADMIN_EMAILS", "").split(",")
     admin_passwords = os.getenv("ADMIN_PASSWORDS", "").split(",")
     if len(admin_emails) != len(admin_passwords):
@@ -61,6 +31,22 @@ def create_admins():
             db.session.add(admin_user)
     db.session.commit()
     return "Admin user created with default values"
+
+
+def create_initial_roles():
+    admin_role = Role.query.filter_by(name="admin").first()
+    user_role = Role.query.filter_by(name="user").first()
+    editor_role = Role.query.filter_by(name="editor").first()
+    if not admin_role:
+        admin_role = Role(name="admin")
+    if not user_role:
+        user_role = Role(name="user")
+    if not editor_role:
+        editor_role = Role(name="editor")
+    db.session().add(admin_role)
+    db.session().add(user_role)
+    db.session().add(editor_role)
+    db.session.commit()
 
 
 class BaseProfileManager:

@@ -55,12 +55,12 @@ def register(cur_user):
         password=hashed_password,
         created_at=datetime.datetime.now(),
     )
-    user_role = Role.query.filter_by(name="userrole").first()
-    if not user_role:
-        user_role = Role(name="userrole")
-        db.session.add(user_role)
-        db.session.commit()
-    new_user.roles.append(user_role)
+    # user_role = Role.query.filter_by(name="userrole").first()
+    # if not user_role:
+    #     user_role = Role(name="userrole")
+    #     db.session.add(user_role)
+    #     db.session.commit()
+    new_user.roles.append(role)
     new_user.generate_token()
     db.session.add(new_user)
     db.session.commit()

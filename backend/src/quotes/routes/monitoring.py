@@ -3,6 +3,7 @@ import io
 import os
 from datetime import datetime, timedelta
 
+from dateutil.relativedelta import relativedelta
 from flask import Blueprint, jsonify, request, send_file
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -52,10 +53,13 @@ def get_report_logs(user):
         now = datetime.now()
 
         if date_filter == "lastMonth":
-            first_day_this_month = now.replace(day=1)
-            last_day_last_month = first_day_this_month - timedelta(days=1)
-            start_date = last_day_last_month.replace(day=1)
-            end_date = first_day_this_month
+            # first_day_this_month = now.replace(day=1)
+            # last_day_last_month = first_day_this_month - timedelta(days=1)
+            # start_date = last_day_last_month.replace(day=1)
+            # end_date = first_day_this_month
+            start_date = now = relativedelta(months=1)
+        elif date_filter == "last3Months":
+            start_date = now = relativedelta(months=3)
         elif date_filter == "lastWeek":
             start_date = now - timedelta(weeks=1)
             end_date = now
@@ -169,10 +173,13 @@ def create_report_log():
 
         if time_period == "lastWeek":
             start_date = now - timedelta(weeks=1)
+        elif time_period == "last3Months":
+            start_date = now = relativedelta(months=3)
         elif time_period == "lastMonth":
-            first_day_this_month = now.replace(day=1)
-            last_day_last_month = first_day_this_month - timedelta(days=1)
-            start_date = last_day_last_month.replace(day=1)
+            # first_day_this_month = now.replace(day=1)
+            # last_day_last_month = first_day_this_month - timedelta(days=1)
+            # start_date = last_day_last_month.replace(day=1)
+            start_date = now = relativedelta(months=1)
         elif time_period == "lastYear":
             start_date = now.replace(year=now.year - 1)
         end_date = now

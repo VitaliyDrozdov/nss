@@ -22,12 +22,13 @@ flask-mail = "^0.10.0"
 aiosmtpd = "^1.4.6"
 
 
+
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^4.0.1"
 isort = "^5.13.2"
 flake8 = "^7.1.1"
 black = "^24.10.0"
-
+python-dateutil = "^2.9.0.post0"
 
 [build-system]
 requires = ["poetry-core"]
