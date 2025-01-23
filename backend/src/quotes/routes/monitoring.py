@@ -111,8 +111,8 @@ def get_report_logs(user):
 
 
 @bp.route("/create", methods=["POST"])
-@token_required
-def create_report_log(user):
+# @token_required
+def create_report_log():
     data = request.json
     VALID_MODEL_NAMES = {"OSAGO", "LIFE_INSURANCE"}
     VALID_MONITORING_TYPES = {"On-demand", "Scheduled"}
@@ -177,7 +177,7 @@ def create_report_log(user):
             start_date = now.replace(year=now.year - 1)
         end_date = now
         query = """
-        SELECT feature_name,feature_value,  start_date, end_date
+        SELECT feature_name, feature_value, start_date, end_date
         FROM dwh.data_mart
         WHERE start_date >= :start_date
         """
@@ -242,8 +242,8 @@ def create_report_log(user):
 
 
 @bp.route("/download/<int:report_id>", methods=["GET"])
-@token_required
-def download_report(user, report_id):
+# @token_required
+def download_report(report_id):
     query = """
     SELECT file
     FROM model_monitoring.report_log

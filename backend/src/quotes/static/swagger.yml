@@ -1138,7 +1138,7 @@ paths:
                   error:
                     type: string
 
-  /api/export:
+  /api/dwh/export:
     post:
       tags:
         - DWH
@@ -1870,6 +1870,8 @@ paths:
       operationId: downloadReport
       tags:
         - Monitoring
+      security:
+        - BearerAuth: []
       parameters:
         - name: report_id
           in: path
