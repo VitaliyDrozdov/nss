@@ -530,14 +530,14 @@ VALUES
     (1080, 'Model catalog update failed', FALSE, '2025-01-14 04:50:00');
 
 CREATE TABLE observability.incidents (
-    id_incident INT PRIMARY KEY,
+    id_incident serial PRIMARY KEY ,
     state VARCHAR(50) NOT NULL,
     priority VARCHAR(20) NOT NULL,
     description TEXT,
     last_updated TIMESTAMP NOT NULL,
     service VARCHAR(100) NOT NULL,
-    trace_id INT NOT NULL,
-    FOREIGN KEY (id_incident) REFERENCES observability.notifications (incident_id)
+    trace_id INT NOT NULL
+    -- FOREIGN KEY (id_incident) REFERENCES observability.notifications (incident_id)
 );
 
 COMMENT ON TABLE observability.incidents IS 'Таблица содержит информацию о каждом инциденте.';
@@ -639,3 +639,7 @@ values
     ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name2','value',0.20,False,null),
     ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name6','value',0.20,False,null),
     ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name10','value',0.20,False,null)
+
+
+-- ALTER TABLE observability.incidents
+-- ALTER COLUMN id_incident SET DATA TYPE SERIAL;

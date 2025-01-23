@@ -157,7 +157,7 @@ def create_incident(user):
             "state": data["state"],
             "priority": data["priority"],
             "description": data.get("description", None),
-            "last_updated": datetime.utcnow(),
+            "last_updated": datetime.now(),
             "service": data["service"],
             "trace_id": data.get("trace_id", 1009),
         }
