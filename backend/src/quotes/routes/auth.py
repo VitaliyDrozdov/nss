@@ -30,18 +30,25 @@ def register(cur_user):
     """Регистрация новых пользователей."""
     email = request.json.get("email")
     password = request.json.get("password", "password")
-    if not email or not password:
+    role_name = request.json.get("role")
+    if not email or not password or not role_name:
         return (
             jsonify(
                 {
                     "error": "Missing required fields",
-                    "request_fields": ["email", "password"],
+                    "request_fields": ["email", "role"],
                 }
             ),
             400,
         )
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "email already exists"}), 400
+    role = Role.query.filter_by(name=role_name).first()
+    if not role:
+        return (
+            jsonify({"error": f"Role '{role_name}' does not exist"}),
+            400,
+        )
     hashed_password = generate_password_hash(password)
     new_user = User(
         email=email,
