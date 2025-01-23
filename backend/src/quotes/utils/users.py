@@ -11,7 +11,30 @@ from quotes.models.auth import Role, User, db
 load_dotenv()
 
 
-def create_admin():
+# def create_admin():
+#     """Скрипт создания админа после запуска приложения."""
+
+#     admin_role = Role.query.filter_by(name="admin").first()
+#     if not admin_role:
+#         admin_role = Role(name="admin")
+#         db.session().add(admin_role)
+#         db.session.commit()
+#         return "Admin user already exists"
+
+
+#     admin_password = os.getenv("ADMIN_PASSWORD")
+#     admin_user = User.query.filter_by(email=os.getenv("ADMIN_EMAIL")).first()
+#     if not admin_user:
+#         hashed_password = generate_password_hash(admin_password)
+#         admin_user = User(
+#             email=os.getenv("ADMIN_EMAIL"), password=hashed_password
+#         )
+#         admin_user.roles.append(admin_role)
+#         admin_user.generate_token()
+#         db.session.add(admin_user)
+#         db.session.commit()
+#         return "Admin user created with default values"
+def create_admins():
     """Скрипт создания админа после запуска приложения."""
 
     admin_role = Role.query.filter_by(name="admin").first()
@@ -19,20 +42,25 @@ def create_admin():
         admin_role = Role(name="admin")
         db.session().add(admin_role)
         db.session.commit()
-        return "Admin user already exists"
+        # return "Admin user already exists"
 
-    admin_password = os.getenv("ADMIN_PASSWORD")
-    admin_user = User.query.filter_by(email=os.getenv("ADMIN_EMAIL")).first()
-    if not admin_user:
-        hashed_password = generate_password_hash(admin_password)
-        admin_user = User(
-            email=os.getenv("ADMIN_EMAIL"), password=hashed_password
-        )
-        admin_user.roles.append(admin_role)
-        admin_user.generate_token()
-        db.session.add(admin_user)
-        db.session.commit()
-        return "Admin user created with default values"
+    admin_emails = os.getenv("ADMIN_EMAILS", "").split(",")
+    admin_passwords = os.getenv("ADMIN_PASSWORDS", "").split(",")
+    if len(admin_emails) != len(admin_passwords):
+        return "Error: Количество email и паролей в .env не совпадает"
+
+    for email, password in zip(admin_emails, admin_passwords):
+        email = email.strip()
+        password = password.strip()
+        admin_user = User.query.filter_by(email=email).first()
+        if not admin_user:
+            hashed_password = generate_password_hash(password)
+            admin_user = User(email=email, password=hashed_password)
+            admin_user.roles.append(admin_role)
+            admin_user.generate_token()
+            db.session.add(admin_user)
+    db.session.commit()
+    return "Admin user created with default values"
 
 
 class BaseProfileManager:
@@ -161,7 +189,8 @@ class AdminProfileManager(BaseProfileManager):
 
 def is_admin(user):
     """Проверка на админскую роль."""
-    return any(role.name == "admin" for role in user.roles)
+    # return any(role.name == "admin" for role in user.roles)
+    return any(role.id == 1 for role in user.roles)
 
 
 def apply_filters(query, filters):

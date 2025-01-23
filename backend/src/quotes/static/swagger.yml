@@ -684,7 +684,7 @@ paths:
 
   /api/dq:
     get:
-      summary: Получение списка всех проверок
+      summary: Получение истории всех проверок
       description: Возвращает список проверок с возможностью фильтрации по типу проверки, продукту и дате.
       tags:
         - DataQuality
@@ -803,7 +803,7 @@ paths:
       security:
         - BearerAuth: []
     patch:
-      summary: Изменение статуса проверки
+      summary: Изменение статуса проверки в истории
       description: Изменяет статус проверки с указанным `check_id`.
       tags:
         - DataQuality
@@ -843,7 +843,7 @@ paths:
         - DataQuality
       security:
         - BearerAuth: []
-      summary: Manage check statuses
+      summary: Включение/отключение проверок для продуктов
       description: Включает или отключает проверки для заданного типа продукта и проверки.
       requestBody:
         required: true

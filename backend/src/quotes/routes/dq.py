@@ -228,12 +228,13 @@ def dq2(data=None):
             runId=runId,
         )
     else:
-        return (
-            jsonify(
-                {"error": "Проверка DQ2.1 выключена для данного продукта."}
-            ),
-            400,
-        )
+        # return (
+        #     jsonify(
+        #         {"error": "Проверка DQ2.1 выключена для данного продукта."}
+        #     ),
+        #     400,
+        # )
+        pass
     # 2.2 Проверка субъекта
     check, check_status = validate_check_type(
         check_type="DQ2.2", product_code=product_code
@@ -322,12 +323,13 @@ def dq2(data=None):
             runId=runId,
         )
     else:
-        return (
-            jsonify(
-                {"error": "Проверка DQ2.2 выключена для данного продукта."}
-            ),
-            400,
-        )
+        # return (
+        #     jsonify(
+        #         {"error": "Проверка DQ2.2 выключена для данного продукта."}
+        #     ),
+        #     400,
+        # )
+        pass
     check, check_status = validate_check_type(
         check_type="DQ2.3", product_code=product_code
     )
@@ -373,12 +375,13 @@ def dq2(data=None):
         )
 
     else:
-        return (
-            jsonify(
-                {"error": "Проверка DQ2.3 выключена для данного продукта."}
-            ),
-            400,
-        )
+        # return (
+        #     jsonify(
+        #         {"error": "Проверка DQ2.3 выключена для данного продукта."}
+        #     ),
+        #     400,
+        # )
+        pass
     return jsonify({"message": "Проверки DQ2 пройдены успешно."}), 200
 
 

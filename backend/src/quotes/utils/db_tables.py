@@ -191,17 +191,17 @@ data = {
         {
             "check_id": 2,
             "type": "DQ2.1",
-            "check_name": "DQ2.1 check",
+            "check_name": "DQ2.1 проверка продутка",
         },
         {
             "check_id": 3,
             "type": "DQ2.2",
-            "check_name": "DQ2.2 check",
+            "check_name": "DQ2.2 проверка субъекта",
         },
         {
             "check_id": 4,
             "type": "DQ2.3",
-            "check_name": "DQ2.3 check",
+            "check_name": "DQ2.3 проверка документов",
         },
     ],
     CheckProductStatus: [

@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from quotes import create_app
 from quotes.config import Config, db
-from quotes.utils import bulk_insert_core_data, create_admin
+from quotes.utils import bulk_insert_core_data, create_admins
 from scripts.sql_script import execute_sql_file
 
 load_dotenv()
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     try:
         with app.app_context():
             db.create_all()  # Создание таблиц в БД
-            create_admin()  # Создание пользователя-админа
+            create_admins()  # Создание пользователей-админов
             bulk_insert_core_data()
             execute_sql_file(f"./src/scripts/{Config.SQL_FILENAME}")
     except Exception as e:
