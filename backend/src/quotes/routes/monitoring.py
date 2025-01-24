@@ -57,9 +57,9 @@ def get_report_logs(user):
             # last_day_last_month = first_day_this_month - timedelta(days=1)
             # start_date = last_day_last_month.replace(day=1)
             # end_date = first_day_this_month
-            start_date = now = relativedelta(months=1)
+            start_date = now - relativedelta(months=1)
         elif date_filter == "last3Months":
-            start_date = now = relativedelta(months=3)
+            start_date = now - relativedelta(months=3)
         elif date_filter == "lastWeek":
             start_date = now - timedelta(weeks=1)
             end_date = now
@@ -120,7 +120,7 @@ def create_report_log():
     data = request.json
     VALID_MODEL_NAMES = {"OSAGO", "LIFE_INSURANCE"}
     VALID_MONITORING_TYPES = {"On-demand", "Scheduled"}
-    VALID_TIME_PERIODS = ["lastWeek", "lastMonth", "lastYear"]
+    VALID_TIME_PERIODS = ["lastWeek", "lastMonth", "lastYear", "last3Months"]
     if (
         "time_period" not in data
         or data["time_period"] not in VALID_TIME_PERIODS
@@ -174,12 +174,12 @@ def create_report_log():
         if time_period == "lastWeek":
             start_date = now - timedelta(weeks=1)
         elif time_period == "last3Months":
-            start_date = now = relativedelta(months=3)
+            start_date = now - relativedelta(months=3)
         elif time_period == "lastMonth":
             # first_day_this_month = now.replace(day=1)
             # last_day_last_month = first_day_this_month - timedelta(days=1)
             # start_date = last_day_last_month.replace(day=1)
-            start_date = now = relativedelta(months=1)
+            start_date = now - relativedelta(months=1)
         elif time_period == "lastYear":
             start_date = now.replace(year=now.year - 1)
         end_date = now

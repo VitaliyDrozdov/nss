@@ -634,11 +634,14 @@ ADD COLUMN file varchar(255);
 insert into dwh.data_mart(product_type,run_id,quote_id,briefcase_date,start_date,end_date,model_name,feature_name,feature_value,predict,is_insurance_case,data_insurance_case)
 values
     ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name1','value',0.20,true,to_date('2024-06-15','yyyy-mm-dd')),
-    ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name3','value',0.20,true,to_date('2024-06-15','yyyy-mm-dd')),
-    ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name5','value',0.20,true,to_date('2024-06-15','yyyy-mm-dd')),
-    ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name2','value',0.20,False,null),
-    ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name6','value',0.20,False,null),
-    ('LIFE','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name10','value',0.20,False,null)
+    ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name3','value',0.34,true,to_date('2024-06-15','yyyy-mm-dd')),
+    ('LIFE','223e4567-e89b-12d3-a456-426655440001','124',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-03-31','yyyy-mm-dd'),to_date('2025-02-28','yyyy-mm-dd'),'LIFE','feature_name5','value',0.22,true,to_date('2024-06-15','yyyy-mm-dd')),
+    ('LIFE','556e4567-e89b-12d3-a456-426655440002','425',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name2','value',0.21,False,null),
+    ('OSAGO','556e4567-e89b-12d3-a456-426655440002','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-10-25','yyyy-mm-dd'),to_date('2025-12-30','yyyy-mm-dd'),'OSAGO','feature_name7','value',0.23,False,null),
+    ('OSAGO','556e4567-e89b-12d3-a456-426655440025','322',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-09-25','yyyy-mm-dd'),to_date('2025-12-12','yyyy-mm-dd'),'OSAGO','feature_name10','value',0.45,False,null),
+    ('OSAGO','556e4567-e89b-12d3-a456-426655440042','425',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-11-30','yyyy-mm-dd'),to_date('2025-12-30','yyyy-mm-dd'),'OSAGO','feature_name10','value',0.61,False,null),
+    ('LIFE','556e4567-e89b-12d3-a456-426655440033','323',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-11-12','yyyy-mm-dd'),to_date('2025-12-14','yyyy-mm-dd'),'LIFE','feature_name10','value',0.72,False,null),
+    ('LIFE','556e4567-e89b-12d3-a456-426655440044','323',to_date('2024-12-31','yyyy-mm-dd'),to_date('2024-06-30','yyyy-mm-dd'),to_date('2025-06-30','yyyy-mm-dd'),'LIFE','feature_name10','value',0.80,False,null)
 
 
 -- ALTER TABLE observability.incidents

@@ -117,7 +117,7 @@ def login():
             ),
             403,
         )
-    return jsonify({"message": "wrong password"})
+    return jsonify({"message": "wrong password"}), 403
 
 
 @bp.route("/logout", methods=["POST"])

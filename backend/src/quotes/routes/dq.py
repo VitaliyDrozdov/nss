@@ -124,22 +124,22 @@ def dq1(data=None):
     )
     if check_status is True:
         try:
-            product_type = product.product_type
+            product_type = product.product_type  # noqa F841
             log_request(data=data, product_code=product_code, runId=runId)
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=True,
-                runId=runId,
-            )
+            # log_check_history(
+            #     check_id=check.check_id,
+            #     product_type=product_type,
+            #     status=True,
+            #     runId=runId,
+            # )
             return validate_input_data(data)
         except ValidationError as e:
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=False,
-                runId=runId,
-            )
+            # log_check_history(
+            #     check_id=check.check_id,
+            #     product_type=product_type,
+            #     status=False,
+            #     runId=runId,
+            # )
             return jsonify({"error": str(e), "details": "DQ1 failed"}), 400
     else:
         return (
@@ -177,12 +177,12 @@ def dq2(data=None):
             .first()
         )
         if not product_type_exists:
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=False,
-                runId=runId,
-            )
+            # log_check_history(
+            #     check_id=check.check_id,
+            #     product_type=product_type,
+            #     status=False,
+            #     runId=runId,
+            # )
             return (
                 jsonify(
                     {
@@ -203,12 +203,12 @@ def dq2(data=None):
             .product_type
         )
         if product_type_for_code != product_type:
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=False,
-                runId=runId,
-            )
+            # log_check_history(
+            #     check_id=check.check_id,
+            #     product_type=product_type,
+            #     status=False,
+            #     runId=runId,
+            # )
             return (
                 jsonify(
                     {
@@ -221,12 +221,12 @@ def dq2(data=None):
                 ),
                 400,
             )
-        log_check_history(
-            check_id=check.check_id,
-            product_type=product_type,
-            status=True,
-            runId=runId,
-        )
+        # log_check_history(
+        #     check_id=check.check_id,
+        #     product_type=product_type,
+        #     status=True,
+        #     runId=runId,
+        # )
     else:
         # return (
         #     jsonify(
@@ -257,12 +257,12 @@ def dq2(data=None):
 
         age = calculate_age(birth_date)
         if age < 18:
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=False,
-                runId=runId,
-            )
+            # log_check_history(
+            #     check_id=check.check_id,
+            #     product_type=product_type,
+            #     status=False,
+            #     runId=runId,
+            # )
             return (
                 jsonify(
                     {
@@ -275,12 +275,12 @@ def dq2(data=None):
 
         # 2.2 Проверка возраста субъекта (максимум 90 лет)
         if age > 90:
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=False,
-                runId=runId,
-            )
+            # log_check_history(
+            #     check_id=check.check_id,
+            #     product_type=product_type,
+            #     status=False,
+            #     runId=runId,
+            # )
             return (
                 jsonify(
                     {
@@ -290,23 +290,23 @@ def dq2(data=None):
                 ),
                 400,
             )
-        log_check_history(
-            check_id=check.check_id,
-            product_type=product_type,
-            status=False,
-            runId=runId,
-        )
+        # log_check_history(
+        #     check_id=check.check_id,
+        #     product_type=product_type,
+        #     status=False,
+        #     runId=runId,
+        # )
         # 2.2 Проверка корректности пола субъекта
         gender = (
             data.get("quote", {}).get("subjects", {})[0].get("gender", None)
         )
         if gender not in ["male", "female"]:
-            log_check_history(
-                check_id=check.check_id,
-                product_type=product_type,
-                status=False,
-                runId=runId,
-            )
+            # log_check_history(
+            #     check_id=check.check_id,
+            #     product_type=product_type,
+            #     status=False,
+            #     runId=runId,
+            # )
             return (
                 jsonify(
                     {
@@ -316,12 +316,12 @@ def dq2(data=None):
                 ),
                 400,
             )
-        log_check_history(
-            check_id=check.check_id,
-            product_type=product_type,
-            status=True,
-            runId=runId,
-        )
+        # log_check_history(
+        #     check_id=check.check_id,
+        #     product_type=product_type,
+        #     status=True,
+        #     runId=runId,
+        # )
     else:
         # return (
         #     jsonify(
@@ -367,12 +367,12 @@ def dq2(data=None):
                 ),
                 400,
             )
-        log_check_history(
-            check_id=check.check_id,
-            product_type=product_type,
-            status=True,
-            runId=runId,
-        )
+        # log_check_history(
+        #     check_id=check.check_id,
+        #     product_type=product_type,
+        #     status=True,
+        #     runId=runId,
+        # )
 
     else:
         # return (
@@ -468,7 +468,9 @@ def handle_check_dq(user, check_id):
             if not request_record:
                 return (
                     jsonify(
-                        {"error": f"Запись с runId {record.runId} не найдена."}
+                        {
+                            "error": f"Request для runId {record.runId} отсутствует в БД."  # noqa
+                        }
                     ),
                     404,
                 )

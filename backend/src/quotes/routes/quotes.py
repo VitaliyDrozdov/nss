@@ -27,6 +27,7 @@ def send_to_mdm(data):
         first_name = subject.firstName
         second_name = subject.secondName
         birth_date = subject.birthDate
+        gender = subject.gender.capitalize()
         documents = subject.documents
         for document in documents:
             document_type = document.documentType
@@ -43,6 +44,7 @@ def send_to_mdm(data):
                 AND d.document_type = :document_type
                 AND d.document_number = :document_number
                 AND d.issue_date = :issue_date
+                AND s.gender = :gender
             """
             )
             result = db.session.execute(
@@ -54,6 +56,7 @@ def send_to_mdm(data):
                     "document_type": document_type,
                     "document_number": document_number,
                     "issue_date": issue_date,
+                    "gender": gender,
                 },
             ).fetchall()
             if result:
@@ -148,6 +151,7 @@ def handle_quote(user):
     input_data = request.get_json()
     if input_data is None:
         return jsonify({"error": "No data in request"}), 400
+
     try:
         # ответ от dq1 эндпоинта:
         dq1_response = dq1(input_data)
